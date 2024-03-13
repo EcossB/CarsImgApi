@@ -23,5 +23,19 @@ namespace CarsImgApi.Controllers
             return Ok("Imagenes Del vehiculo Guardados!");
         }
 
+        [HttpGet]
+        public async Task<ActionResult<List<ImgVehicleModel>>> getAllVehicles()
+        {
+            var vehicleList = _interfaceImg.getAllImagesVehicles();
+            return Ok(vehicleList);
+        }
+
+        [HttpGet("{num_order}")]
+        public async Task<ActionResult<ImgVehicleModel>> getImgVehicleByNumOrder(int num_order)
+        {
+            var vehicleImg = _interfaceImg.getImageVehicle(num_order);
+            return Ok(vehicleImg);
+        }
+
     }
 }
