@@ -24,7 +24,7 @@ namespace CarsImgApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ImgVehicleModel>>> getAllVehicles()
+        public async Task<ActionResult<List<ImgVehicleModel>>> getAllVehiclesImg()
         {
             var vehicleList = _interfaceImg.getAllImagesVehicles();
             return Ok(vehicleList);
@@ -34,7 +34,12 @@ namespace CarsImgApi.Controllers
         public async Task<ActionResult<ImgVehicleModel>> getImgVehicleByNumOrder(int num_order)
         {
             var vehicleImg = _interfaceImg.getImageVehicle(num_order);
-            return Ok(vehicleImg);
+            if(vehicleImg.Img_lateral_izquierdo.Length > 0)
+            {
+                return Ok(vehicleImg);
+            }
+            return BadRequest("No existe ese numero de orden.");
+            
         }
 
     }

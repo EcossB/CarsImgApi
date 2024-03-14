@@ -14,6 +14,30 @@ namespace CarsImgApi.services
 
         private readonly string _connectionString = "User Id=snapshotdb; Password=snapshot123; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
 
+
+        public List<ChasisModel> getChasis(string chasis)
+        {
+            var chasisM = new List<ChasisModel>();
+            using(OracleConnection con = new OracleConnection(_connectionString))
+            {
+                using(OracleCommand cmd = con.CreateCommand()) 
+                {
+                    con.Open();
+                    cmd.CommandText = @"SELECT CHASIS FROM SNAPSHOTDB.DATOS_VEHICULOS where chasis like '%" +chasis+ "%'";
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var chasisR = new ChasisModel
+                        {
+                            Chasis = reader["CHASIS"].ToString(),
+                        };
+                        chasisM.Add(chasisR);
+                    }
+                }
+            }
+            return chasisM;
+        }
+
         public List<ChasisModel> getAllChasis()
         {
             List<ChasisModel> chasis = new List<ChasisModel>();

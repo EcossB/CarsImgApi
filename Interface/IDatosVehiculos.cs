@@ -9,5 +9,7 @@ namespace CarsImgApi.Interface
         ModeloVehiculo getVehicleByChasis(string chasis);
 
         List<ChasisModel> getAllChasis();
+
+        List<ChasisModel> getChasis(string chasis);
     }
 }
