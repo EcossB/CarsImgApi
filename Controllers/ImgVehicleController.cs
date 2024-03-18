@@ -19,8 +19,16 @@ namespace CarsImgApi.Controllers
         [HttpPost]
         public async Task<ActionResult<string>> saveImgData(ImgVehicleModel imgVehicle)
         {
-            _interfaceImg.addImagesVehicle(imgVehicle);
-            return Ok("Imagenes Del vehiculo Guardados!");
+            if (imgVehicle.Img_frontal.Length > 0 &&
+                imgVehicle.Img_lateral_izquierdo.Length > 0 &&
+                imgVehicle.Img_trasero.Length > 0 &&
+                imgVehicle.Img_lateral_derecho.Length > 0)
+            {
+                _interfaceImg.addImagesVehicle(imgVehicle);
+                return Ok(new { mensaje = "Imagenes Del vehiculo Guardados!" });
+            } else
+                return BadRequest(new { mensaje = "Debes de seleccionar un vehiculo y tirar las 4 fotos." });
+
         }
 
         [HttpGet]
