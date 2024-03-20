@@ -4,16 +4,23 @@ using Oracle.ManagedDataAccess.Client;
 
 namespace CarsImgApi.services
 {
-    public class ImgVehiclesService: IImageVehicle
+    public class ImgVehiclesService: BaseService, IImageVehicle
     {
 
-        private readonly string _connectionString = "User Id=snapshotdb; Password=snapshot123; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
+        private readonly IConfiguration _configuration;
 
-        public void addImagesVehicle(ImgVehicleModel vehicle)
+        public ImgVehiclesService(IConfiguration configuration)
         {
+            _configuration = configuration;
+        }
+
+        public void addImagesVehicle(ImgVehicleModel vehicle, string user)
+        {
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+
             try
             {
-                using (OracleConnection con = new OracleConnection(_connectionString))
+                using (OracleConnection con = new OracleConnection(stringConnection))
                 {
                     using (OracleCommand cmd = con.CreateCommand())
                     {
@@ -48,10 +55,12 @@ namespace CarsImgApi.services
             }
         }
 
-        public List<ImgVehicleModel> getAllImagesVehicles()
+        public List<ImgVehicleModel> getAllImagesVehicles(string user)
         {
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+
             var imageVehiclesList = new List<ImgVehicleModel>();
-            using(OracleConnection con = new OracleConnection(_connectionString))
+            using(OracleConnection con = new OracleConnection(stringConnection))
             {
                 using(OracleCommand cmd = con.CreateCommand())
                 {
@@ -84,10 +93,12 @@ namespace CarsImgApi.services
             return imageVehiclesList;
         }
 
-        public ImgVehicleModel getImageVehicle(int num_order)
+        public ImgVehicleModel getImageVehicle(int num_order, string user)
         {
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+
             var imgVehicleModel = new ImgVehicleModel();
-            using(OracleConnection con = new OracleConnection(_connectionString))
+            using(OracleConnection con = new OracleConnection(stringConnection))
             {
                 using(OracleCommand cmd = con.CreateCommand())
                 {
@@ -113,6 +124,12 @@ namespace CarsImgApi.services
                 }
             }
             return imgVehicleModel;
+        }
+
+        public string GetName(string token)
+        {
+            DecryptService decryptService = new DecryptService(this._configuration);
+            return decryptService.GetName(token);
         }
     }
 }
