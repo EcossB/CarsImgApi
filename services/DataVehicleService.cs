@@ -6,24 +6,41 @@ using System.Drawing;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using CarsImgApi.Entity;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace CarsImgApi.services
 {
-    public class DataVehicleService : IDatosVehiculos
+    public class DataVehicleService : PoolSqlConnections, IDatosVehiculos
     {
 
-        private readonly string _connectionString = "User Id=snapshotdb; Password=snapshot123; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
+        private readonly IConfiguration _configuration;
 
-
-        public List<ChasisModel> getChasis(string chasis)
+        public DataVehicleService(IConfiguration configuration)
         {
+            _configuration = configuration; 
+        }
+
+        public string GetName(string token)
+        {
+            DecryptService decryptService = new DecryptService(this._configuration);
+            return decryptService.GetName(token);
+        }
+
+        public List<ChasisModel> getChasis(string chasis, string user)
+        {
+
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+
             var chasisM = new List<ChasisModel>();
-            using(OracleConnection con = new OracleConnection(_connectionString))
+            using (OracleConnection con = new OracleConnection(stringConnection))
             {
-                using(OracleCommand cmd = con.CreateCommand()) 
+                using (OracleCommand cmd = con.CreateCommand())
                 {
                     con.Open();
-                    cmd.CommandText = @"SELECT CHASIS FROM SNAPSHOTDB.DATOS_VEHICULOS where chasis like '%" +chasis+ "%'";
+                    cmd.CommandText = @"SELECT CHASIS FROM SNAPSHOTDB.DATOS_VEHICULOS where chasis like '%" + chasis + "%'";
                     var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
@@ -38,10 +55,12 @@ namespace CarsImgApi.services
             return chasisM;
         }
 
-        public List<ChasisModel> getAllChasis()
+        public List<ChasisModel> getAllChasis(string user)
         {
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+
             List<ChasisModel> chasis = new List<ChasisModel>();
-            using(OracleConnection con = new OracleConnection(_connectionString))
+            using(OracleConnection con = new OracleConnection(stringConnection))
             {
                 using(OracleCommand cmd = con.CreateCommand()) 
                 {
@@ -61,10 +80,12 @@ namespace CarsImgApi.services
             return chasis;
         }
 
-        public List<ModeloVehiculo> getAllVehiclesData()
+        public List<ModeloVehiculo> getAllVehiclesData(string user)
         {
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+
             List<ModeloVehiculo> vehicles = new List<ModeloVehiculo>();
-            using(OracleConnection con = new OracleConnection(_connectionString))
+            using(OracleConnection con = new OracleConnection(stringConnection))
             {
                 using(OracleCommand cmd = con.CreateCommand())
                 {
@@ -105,10 +126,12 @@ namespace CarsImgApi.services
 
         }
 
-        public ModeloVehiculo getVehicleByChasis(string chasis)
+        public ModeloVehiculo getVehicleByChasis(string chasis, string user)
         {
+
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
             var vehicleModel = new ModeloVehiculo();
-            using(OracleConnection con = new OracleConnection(_connectionString))
+            using(OracleConnection con = new OracleConnection(stringConnection))
             {
                 using(OracleCommand cmd = con.CreateCommand())
                 {
@@ -137,5 +160,7 @@ namespace CarsImgApi.services
             }
             return vehicleModel;
         }
+
+
     }
 }
