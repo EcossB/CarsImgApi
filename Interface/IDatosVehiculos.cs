@@ -1,15 +1,17 @@
 ﻿using CarsImgApi.Models;
+using CarsImgApi.services;
 
 namespace CarsImgApi.Interface
 {
-    public interface IDatosVehiculos
+    public interface IDatosVehiculos 
     {
-        List<ModeloVehiculo> getAllVehiclesData();
+       
+        List<ModeloVehiculo> getAllVehiclesData(string user);
 
-        ModeloVehiculo getVehicleByChasis(string chasis);
+        ModeloVehiculo getVehicleByChasis(string chasis, string user);
 
-        List<ChasisModel> getAllChasis();
+        List<ChasisModel> getAllChasis(string user);
 
-        List<ChasisModel> getChasis(string chasis);
+        List<ChasisModel> getChasis(string chasis, string user);
     }
 }
