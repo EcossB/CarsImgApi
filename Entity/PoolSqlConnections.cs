@@ -11,7 +11,7 @@ namespace CarsImgApi.Entity
         {
             if ( has(_user.userName) )
             {
-                this.userConnections.Remove(this.userConnections.First(u => u.Equals(_user)));   
+                this.userConnections.Remove(this.userConnections.First(u => u.userName == _user.userName));   
                 
             } 
             this.userConnections?.Add(_user);
@@ -28,7 +28,8 @@ namespace CarsImgApi.Entity
         {
             if( has(_user.userName) )
             {
-                return this.userConnections.Remove(_user);
+                Console.WriteLine(userConnections.Count);
+                return this.userConnections.Remove(this.userConnections.First(u => u.userName == _user.userName));
             }
             else
             {
@@ -44,7 +45,7 @@ namespace CarsImgApi.Entity
 
         public string getConnectionString(UserSqlConnection _user)
         {
-            return $"User Id={_user.userName}; Password={_user.password}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
+            return $"User Id={_user.userName.ToUpper()}; Password={_user.password.ToUpper()}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
         }
 
     }
