@@ -58,9 +58,18 @@ namespace CarsImgApi.services
             
         }
 
-        public void logOut(UserSqlConnection user)
+        public MessageModel logOut(UserSqlConnection user)
         {
-            BaseService._poolSqlConnections.remove(user);
+            var message = new MessageModel();
+            if (BaseService._poolSqlConnections.remove(user))
+            {
+                message.message = "Log out succesfully";
+                return message;
+            }
+            else
+                message.message = "That user it's not log in, so it can't be log out";
+
+            return message;
         }
 
         public string generateToken(UserSqlConnection user)
