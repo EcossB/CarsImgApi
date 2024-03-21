@@ -7,6 +7,6 @@ namespace CarsImgApi.Interface
     {
         public LoginModel login(UserSqlConnection user);
 
-        public void logOut(UserSqlConnection user);
+        public MessageModel logOut(UserSqlConnection user);
     }
 }
