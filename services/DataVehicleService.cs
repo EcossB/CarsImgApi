@@ -80,40 +80,32 @@ namespace CarsImgApi.services
             return chasis;
         }
 
-        public List<ModeloVehiculo> getAllVehiclesData(string user)
+        public List<RecepcionVehiculoModel> getAllVehiclesData(string user)
         {
             var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
 
-            List<ModeloVehiculo> vehicles = new List<ModeloVehiculo>();
+            List<RecepcionVehiculoModel> vehicles = new List<RecepcionVehiculoModel>();
             using(OracleConnection con = new OracleConnection(stringConnection))
             {
                 using(OracleCommand cmd = con.CreateCommand())
                 {
                     con.Open();
                     cmd.CommandText = @"select 
-                                        compania, 
-                                        sucursal, 
-                                        orden_numero, 
-                                        chasis, 
+                                        nombre,
                                         marca, 
                                         modelo, 
-                                        ano, 
                                         placa, 
                                         color 
-                                        from snapshotdb.datos_vehiculos";
+                                        from snapshotdb.V_ORDENES_PARA_RECEPCION";
                     OracleDataReader reader = cmd.ExecuteReader();
 
                     while (reader.Read())
                     {
-                        var vehicle = new ModeloVehiculo
+                        var vehicle = new RecepcionVehiculoModel
                         {
-                            Compania = reader["compania"].ToString(),
-                            Sucursal = reader["sucursal"].ToString(),
-                            Orden_Numero = Convert.ToInt32(reader["orden_numero"]),
-                            Chasis = reader["chasis"].ToString(),
+                            Nombre = reader["nombre"].ToString(),
                             Marca = Convert.ToInt32(reader["marca"]),
                             Modelo = Convert.ToInt32(reader["modelo"]),
-                            Ano = Convert.ToInt32(reader["ano"]),
                             Placa = reader["placa"].ToString(),
                             Color = Convert.ToInt32(reader["color"])
                         };
