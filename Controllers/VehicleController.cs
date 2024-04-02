@@ -23,7 +23,7 @@ namespace CarsImgApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ModeloVehiculo>>> GetAllVehiclesData(string user)
+        public async Task<ActionResult<List<ModeloVehiculoRecepcion>>> GetAllVehiclesData(string user)
         {
             var vehicles = _interfaceVehicles.getAllVehiclesData(user);
             return Ok(vehicles);
@@ -31,14 +31,14 @@ namespace CarsImgApi.Controllers
 
         [HttpGet("{chasis}")]
 
-        public async Task<ActionResult<ModeloVehiculo>> getVehicleByChasis(string chasis, string user)
+        public async Task<ActionResult<ModeloVehiculoRecepcion>> getVehicleByChasis(string placa, string user)
         {
-            var vehicle = _interfaceVehicles.getVehicleByChasis(chasis,  user);
-            if(vehicle.Chasis != "")
+            var vehicle = _interfaceVehicles.getVehicleByPlaca(placa,  user);
+            if(vehicle.Placa != "")
             {
                 return Ok(vehicle);
             }
-            return BadRequest("No existe vehiculo conel chasis introducido.");
+            return BadRequest("No existe vehiculo con la placa introducida.");
         }
 
         [HttpGet("allChasis")]
