@@ -45,7 +45,7 @@ namespace CarsImgApi.Entity
 
         public string getConnectionString(UserSqlConnection _user)
         {
-            return $"User Id={_user.userName.ToUpper()}; Password={_user.password.ToUpper()}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
+            return $"User Id={_user.userName.ToUpper()}; Password={_user.password}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
         }
 
     }
