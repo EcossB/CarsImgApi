@@ -6,9 +6,9 @@ namespace CarsImgApi.Interface
     public interface IDatosVehiculos 
     {
        
-        List<RecepcionVehiculoModel> getAllVehiclesData(string user);
+        List<ModeloVehiculoRecepcion> getAllVehiclesData(string user);
 
-        ModeloVehiculo getVehicleByChasis(string chasis, string user);
+        ModeloVehiculoRecepcion getVehicleByPlaca(string placa, string user);
 
         List<ChasisModel> getAllChasis(string user);
 
