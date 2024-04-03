@@ -29,7 +29,7 @@ namespace CarsImgApi.Controllers
             return BadRequest(token);
         }
 
-        [HttpPost("/logout")]
+        [HttpPost("logout")]
         public async Task<ActionResult<MessageModel>> LogOut(UserSqlConnection token)
         {
             var message = _authService.logOut(token);
