@@ -72,7 +72,8 @@ namespace CarsImgApi.services
                                                IMG_LATERAL_IZQUIERDO,
                                                IMG_FRONTAL,
                                                IMG_TRASERO
-                                            FROM IMAGENES_VEHICULOS";
+                                            FROM IMAGENES_VEHICULOS
+                                             ORDER BY NUM_ORDER ASC;";
                     OracleDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
@@ -124,6 +125,57 @@ namespace CarsImgApi.services
                 }
             }
             return imgVehicleModel;
+        }
+
+
+        public List<ImgVehicleModel> getFirst5(string user)
+        {
+            var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+
+            var imageVehiclesList5 = new List<ImgVehicleModel>();
+            using (OracleConnection con = new OracleConnection(stringConnection))
+            {
+                using(OracleCommand cmd = con.CreateCommand())
+                {
+                    con.Open();
+
+                    cmd.CommandText = @"SELECT * 
+                                            FROM
+                                           (SELECT COMPANIA,
+                                                   SUCURSAL,
+                                                   NUM_ORDEN,
+                                                   IMG_LATERAL_DERECHO,
+                                                   IMG_LATERAL_IZQUIERDO,
+                                                   IMG_FRONTAL,
+                                                   IMG_TRASERO
+                                                   FROM IMAGENES_VEHICULOS
+                                                   order by num_orden asc)
+                                            WHERE ROWNUM <= 5";
+
+                    OracleDataReader reader = cmd.ExecuteReader();
+                    while(reader.Read())
+                    {
+                        var imgVehicle = new ImgVehicleModel
+                        {
+                            Compania = reader["COMPANIA"].ToString(),
+                            Sucursal = reader["SUCURSAL"].ToString(),
+                            Orden_Numero = Convert.ToInt32(reader["NUM_ORDEN"]),
+                            Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
+                            Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
+                            Img_frontal = reader["IMG_FRONTAL"].ToString(),
+                            Img_trasero = reader["IMG_TRASERO"].ToString()
+                        };
+                        imageVehiclesList5.Add(imgVehicle);
+                    }
+                } 
+            }
+            return imageVehiclesList5;
+
+        }
+
+        public List<ImgVehicleModel> getNext(string user, int pagina, int limiteRegistro)
+        {
+            return this.getAllImagesVehicles(user).Skip((pagina - 1) * limiteRegistro).Take(limiteRegistro).ToList();
         }
 
         public string GetName(string token)
