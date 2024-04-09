@@ -53,5 +53,23 @@ namespace CarsImgApi.Controllers
             
         }
 
+        [HttpGet("/api/pagination")]
+        public async Task<ActionResult<List<ImgVehicleModel>>> imgPagination(string user, int pagina, int limiteRegistro)
+        {
+            var vehicleImg = _interfaceImg.getNext(user, pagina, limiteRegistro);
+
+            return Ok(vehicleImg);
+
+        }
+
+        [HttpGet("/api/get5first")]
+        public async Task<ActionResult<List<ImgVehicleModel>>> getFirst5(string user)
+        {
+            var vehicleImg = _interfaceImg.getFirst5(user);
+            return Ok(vehicleImg);
+
+        }
+
+
     }
 }
