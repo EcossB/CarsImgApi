@@ -10,5 +10,9 @@ namespace CarsImgApi.Interface
 
         ImgVehicleModel getImageVehicle(int num_order, string user);
 
+        public List<ImgVehicleModel> getNext(string user, int pagina, int limiteRegistro);
+
+        public List<ImgVehicleModel> getFirst5(string user);
+
     }
 }
