@@ -73,7 +73,7 @@ namespace CarsImgApi.services
                                                IMG_FRONTAL,
                                                IMG_TRASERO
                                             FROM IMAGENES_VEHICULOS
-                                             ORDER BY NUM_ORDER ASC;";
+                                             ORDER BY NUM_ORDEN ASC";
                     OracleDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
