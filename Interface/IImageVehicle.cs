@@ -12,7 +12,7 @@ namespace CarsImgApi.Interface
 
         public List<ImgVehicleModel> getNext(string user, int pagina, int limiteRegistro);
 
-        public List<ImgVehicleModel> getFirst5(string user);
+        public List<ImgVehicleModel> getFirst4(string user);
 
     }
 }

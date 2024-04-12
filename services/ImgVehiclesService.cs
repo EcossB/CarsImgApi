@@ -32,18 +32,33 @@ namespace CarsImgApi.services
                                              IMG_LATERAL_DERECHO,
                                              IMG_LATERAL_IZQUIERDO,
                                              IMG_FRONTAL, 
-                                             IMG_TRASERO) 
+                                             IMG_TRASERO,
+                                             IMG_ANEXO1,
+                                             IMG_ANEXO2,
+                                             IMG_ANEXO3) 
                                              VALUES
-                                            (:compania, :sucursal, :num_orden, :imgder, :imgizq, :imgfront, :imgtras)";
+                                            (:COMPANIA, 
+                                             :SUCURSAL, 
+                                             :NUM_ORDEN, 
+                                             :IMGDER, 
+                                             :IMGIZQ, 
+                                             :IMGFRONT, 
+                                             :IMGTRAS, 
+                                             :IMGANEXO1, 
+                                             :IMGANEXO2, 
+                                             :IMGANEXO3)";
 
 
-                        cmd.Parameters.Add(":compania", OracleDbType.Varchar2).Value = vehicle.Compania;
+                        cmd.Parameters.Add(":COMPANIA", OracleDbType.Varchar2).Value = vehicle.Compania;
                         cmd.Parameters.Add(":sucursal", OracleDbType.Varchar2).Value = vehicle.Sucursal;
-                        cmd.Parameters.Add(":num_orden", OracleDbType.Int32).Value = vehicle.Orden_Numero;
-                        cmd.Parameters.Add(":imgder", OracleDbType.Clob).Value = vehicle.Img_lateral_derecho;
-                        cmd.Parameters.Add(":imgizq", OracleDbType.Clob).Value = vehicle.Img_lateral_izquierdo;
-                        cmd.Parameters.Add(":imgfront", OracleDbType.Clob).Value = vehicle.Img_frontal;
-                        cmd.Parameters.Add(":imgtras", OracleDbType.Clob).Value = vehicle.Img_trasero;
+                        cmd.Parameters.Add(":SUCURSAL", OracleDbType.Int32).Value = vehicle.Orden_Numero;
+                        cmd.Parameters.Add(":IMGDER", OracleDbType.Clob).Value = vehicle.Img_lateral_derecho;
+                        cmd.Parameters.Add(":IMGIZQ", OracleDbType.Clob).Value = vehicle.Img_lateral_izquierdo;
+                        cmd.Parameters.Add(":IMGFRONT", OracleDbType.Clob).Value = vehicle.Img_frontal;
+                        cmd.Parameters.Add(":IMGTRAS", OracleDbType.Clob).Value = vehicle.Img_trasero;
+                        cmd.Parameters.Add(":IMGANEXO1", OracleDbType.Clob).Value = vehicle.Img_anexo1;
+                        cmd.Parameters.Add(":IMGANEXO2", OracleDbType.Clob).Value = vehicle.Img_anexo2;
+                        cmd.Parameters.Add(":IMGANEXO3", OracleDbType.Clob).Value = vehicle.Img_anexo3;
 
                         cmd.ExecuteNonQuery();
 
@@ -71,8 +86,11 @@ namespace CarsImgApi.services
                                                IMG_LATERAL_DERECHO,
                                                IMG_LATERAL_IZQUIERDO,
                                                IMG_FRONTAL,
-                                               IMG_TRASERO
-                                            FROM IMAGENES_VEHICULOS
+                                               IMG_TRASERO,
+                                               IMG_ANEXO1,
+                                               IMG_ANEXO2,
+                                               IMG_ANEXO3
+                                            FROM SNAPSHOTDB.IMAGENES_VEHICULOS
                                              ORDER BY NUM_ORDEN ASC";
                     OracleDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -85,7 +103,11 @@ namespace CarsImgApi.services
                             Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
                             Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
                             Img_frontal = reader["IMG_FRONTAL"].ToString(),
-                            Img_trasero = reader["IMG_TRASERO"].ToString()
+                            Img_trasero = reader["IMG_TRASERO"].ToString(),
+                            Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
+                            Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
+                            Img_anexo3 = reader["IMG_ANEXO3"].ToString()
+
                         };
                         imageVehiclesList.Add(vehicle);
                     }
@@ -118,7 +140,10 @@ namespace CarsImgApi.services
                             Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
                             Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
                             Img_frontal = reader["IMG_FRONTAL"].ToString(),
-                            Img_trasero = reader["IMG_TRASERO"].ToString()
+                            Img_trasero = reader["IMG_TRASERO"].ToString(),
+                            Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
+                            Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
+                            Img_anexo3 = reader["IMG_ANEXO3"].ToString()
                         };
                         imgVehicleModel = imgVehicle;
                     }
@@ -128,7 +153,7 @@ namespace CarsImgApi.services
         }
 
 
-        public List<ImgVehicleModel> getFirst5(string user)
+        public List<ImgVehicleModel> getFirst4(string user)
         {
             var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
 
@@ -147,10 +172,13 @@ namespace CarsImgApi.services
                                                    IMG_LATERAL_DERECHO,
                                                    IMG_LATERAL_IZQUIERDO,
                                                    IMG_FRONTAL,
-                                                   IMG_TRASERO
-                                                   FROM IMAGENES_VEHICULOS
+                                                   IMG_TRASERO,
+                                                   IMG_ANEXO1,
+                                                   IMG_ANEXO2,
+                                                   IMG_ANEXO3
+                                                   FROM SNAPSHOTDB.IMAGENES_VEHICULOS
                                                    order by num_orden asc)
-                                            WHERE ROWNUM <= 5";
+                                            WHERE ROWNUM <= 4";
 
                     OracleDataReader reader = cmd.ExecuteReader();
                     while(reader.Read())
@@ -163,7 +191,10 @@ namespace CarsImgApi.services
                             Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
                             Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
                             Img_frontal = reader["IMG_FRONTAL"].ToString(),
-                            Img_trasero = reader["IMG_TRASERO"].ToString()
+                            Img_trasero = reader["IMG_TRASERO"].ToString(),
+                            Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
+                            Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
+                            Img_anexo3 = reader["IMG_ANEXO3"].ToString()
                         };
                         imageVehiclesList5.Add(imgVehicle);
                     }

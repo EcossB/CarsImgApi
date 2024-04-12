@@ -62,10 +62,10 @@ namespace CarsImgApi.Controllers
 
         }
 
-        [HttpGet("/api/get5first")]
+        [HttpGet("/api/get4first")]
         public async Task<ActionResult<List<ImgVehicleModel>>> getFirst5(string user)
         {
-            var vehicleImg = _interfaceImg.getFirst5(user);
+            var vehicleImg = _interfaceImg.getFirst4(user);
             return Ok(vehicleImg);
 
         }
