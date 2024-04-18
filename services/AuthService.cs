@@ -58,7 +58,7 @@ namespace CarsImgApi.services
             
         }
 
-        public MessageModel logOut(string userName)
+        public MessageModel logOut(LogOutModel userName)
         {
             var message = new MessageModel();
             if (BaseService._poolSqlConnections.remove(userName))

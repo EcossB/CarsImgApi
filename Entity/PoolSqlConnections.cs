@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using CarsImgApi.Models;
+using System.Linq;
 
 namespace CarsImgApi.Entity
 {
@@ -24,12 +25,12 @@ namespace CarsImgApi.Entity
            
         }
 
-        public bool remove(string _userName)
+        public bool remove(LogOutModel _userName)
         {
-            if( has(_userName) )
+            if( has(_userName.userName) )
             {
                 Console.WriteLine(userConnections.Count);
-                return this.userConnections.Remove(this.userConnections.First(u => u.userName == _userName));
+                return this.userConnections.Remove(this.userConnections.First(u => u.userName == _userName.userName));
             }
             else
             {
@@ -45,8 +46,8 @@ namespace CarsImgApi.Entity
 
         public string getConnectionString(UserSqlConnection _user)
         {
-            return $"User Id={_user.userName}; Password={_user.password}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = localhost)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = pdb2)))";
-            //return $"User Id={_user.userName.ToUpper()}; Password={_user.password}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
+            //return $"User Id={_user.userName}; Password={_user.password}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = localhost)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = pdb2)))";
+            return $"User Id={_user.userName.ToUpper()}; Password={_user.password}; Data Source=(DESCRIPTION =(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = 127.0.0.1)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = xe)))";
         }
 
     }
