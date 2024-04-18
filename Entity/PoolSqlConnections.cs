@@ -24,12 +24,12 @@ namespace CarsImgApi.Entity
            
         }
 
-        public bool remove(UserSqlConnection _user)
+        public bool remove(string _userName)
         {
-            if( has(_user.userName) )
+            if( has(_userName) )
             {
                 Console.WriteLine(userConnections.Count);
-                return this.userConnections.Remove(this.userConnections.First(u => u.userName == _user.userName));
+                return this.userConnections.Remove(this.userConnections.First(u => u.userName == _userName));
             }
             else
             {
