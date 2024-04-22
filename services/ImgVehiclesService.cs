@@ -25,7 +25,7 @@ namespace CarsImgApi.services
                     using (OracleCommand cmd = con.CreateCommand())
                     {
                         con.Open();
-                        cmd.CommandText = @"INSERT INTO SNAPSHOTDB.IMAGENES_VEHICULOS 
+                        cmd.CommandText = @"INSERT INTO IMAGENES_VEHICULOS 
                                             (COMPANIA,
                                              SUCURSAL,
                                              NUM_ORDEN,
@@ -90,7 +90,7 @@ namespace CarsImgApi.services
                                                IMG_ANEXO1,
                                                IMG_ANEXO2,
                                                IMG_ANEXO3
-                                            FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                            FROM IMAGENES_VEHICULOS
                                              ORDER BY NUM_ORDEN ASC";
                     OracleDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -127,7 +127,7 @@ namespace CarsImgApi.services
                 {
                     con.Open();
                     cmd.CommandText = @"SELECT *
-                                            FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                            FROM IMAGENES_VEHICULOS
                                           WHERE NUM_ORDEN=" + num_order + "";
                     OracleDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -176,7 +176,7 @@ namespace CarsImgApi.services
                                                    IMG_ANEXO1,
                                                    IMG_ANEXO2,
                                                    IMG_ANEXO3
-                                                   FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                                   FROM IMAGENES_VEHICULOS
                                                    order by num_orden asc)
                                             WHERE ROWNUM <= 4";
 
