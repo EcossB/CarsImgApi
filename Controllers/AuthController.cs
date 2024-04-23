@@ -30,9 +30,9 @@ namespace CarsImgApi.Controllers
         }
 
         [HttpPost("logout")]
-        public async Task<ActionResult<MessageModel>> LogOut(UserSqlConnection token)
+        public async Task<ActionResult<MessageModel>> LogOut(LogOutModel userName)
         {
-            var message = _authService.logOut(token);
+            var message = _authService.logOut(userName);
             return Ok(message);
         }
 
