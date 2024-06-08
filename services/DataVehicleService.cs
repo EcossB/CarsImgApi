@@ -40,7 +40,7 @@ namespace CarsImgApi.services
                 using (OracleCommand cmd = con.CreateCommand())
                 {
                     con.Open();
-                    cmd.CommandText = @"SELECT CHASIS FROM SNAPSHOTDB.DATOS_VEHICULOS where chasis like '%" + chasis + "%'";
+                    cmd.CommandText = @"SELECT CHASIS FROM DATOS_VEHICULOS where chasis like '%" + chasis + "%'";
                     var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
@@ -65,7 +65,7 @@ namespace CarsImgApi.services
                 using(OracleCommand cmd = con.CreateCommand()) 
                 {
                     con.Open();
-                    cmd.CommandText = @"SELECT CHASIS FROM SNAPSHOTDB.DATOS_VEHICULOS";
+                    cmd.CommandText = @"SELECT CHASIS FROM DATOS_VEHICULOS";
                     OracleDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
@@ -99,7 +99,7 @@ namespace CarsImgApi.services
                                         marca, 
                                         modelo, 
                                         placa 
-                                        from snapshotdb.V_ORDENES_PARA_RECEPCION";
+                                        from V_ORDENES_PARA_RECEPCION";
                     OracleDataReader reader = cmd.ExecuteReader();
 
                     while (reader.Read())
