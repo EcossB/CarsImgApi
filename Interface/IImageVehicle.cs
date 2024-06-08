@@ -4,7 +4,7 @@ namespace CarsImgApi.Interface
 {
     public interface IImageVehicle
     {
-        void addImagesVehicle(ImgVehicleModel vehicle, string user);
+        Task<string> addImagesVehicle(ImgVehicleModel vehicle, string user);
 
         List<ImgVehicleModel> getAllImagesVehicles(string user);
 

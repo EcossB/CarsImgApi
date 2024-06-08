@@ -14,15 +14,15 @@ namespace CarsImgApi.services
             _configuration = configuration;
         }
 
-        public void addImagesVehicle(ImgVehicleModel vehicle, string user)
+        public async Task<string> addImagesVehicle(ImgVehicleModel vehicle, string user)
         {
             var stringConnection = base.getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
 
             try
             {
-                using (OracleConnection con = new OracleConnection(stringConnection))
+                await using (OracleConnection con = new OracleConnection(stringConnection))
                 {
-                    using (OracleCommand cmd = con.CreateCommand())
+                   await using (OracleCommand cmd = con.CreateCommand())
                     {
                         con.Open();
                         cmd.CommandText = @"INSERT INTO SNAPSHOTDB.IMAGENES_VEHICULOS 
@@ -62,6 +62,7 @@ namespace CarsImgApi.services
 
                         cmd.ExecuteNonQuery();
 
+                        return "Imagenes Del vehiculo Guardados!";
                     }
                 }
             } catch(Exception e) 
