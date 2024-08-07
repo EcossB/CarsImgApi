@@ -1,6 +1,6 @@
-﻿using CarsImgApi.Entity;
-using CarsImgApi.Interface;
-using CarsImgApi.Models;
+﻿using CarsImgApi.Models;
+using CarsImgApi.Models.DTO.LoginDTO;
+using CarsImgApi.Repository.Interface;
 using Microsoft.IdentityModel.Tokens;
 using Oracle.ManagedDataAccess.Client;
 using System.IdentityModel.Tokens.Jwt;
@@ -21,7 +21,7 @@ namespace CarsImgApi.services
         }
 
 
-        public LoginModel login(UserSqlConnection user)
+        public async Task<LoginModel> login(UserSqlConnection user)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace CarsImgApi.services
                 var conString = BaseService._poolSqlConnections.getConnectionString(user);
                 using(OracleConnection con = new OracleConnection(conString))
                 {
-                    con.Open();
+                    await con.OpenAsync();
                 }
                 BaseService._poolSqlConnections.add(user);
 
@@ -42,7 +42,7 @@ namespace CarsImgApi.services
 
                 return model;
 
-            } catch (Exception ex)
+            } catch (Exception)
             {
                 LoginModel model = new LoginModel
                 {
@@ -79,8 +79,7 @@ namespace CarsImgApi.services
                 new Claim(ClaimTypes.Name, user.userName)
             };
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
-                _configuration.GetSection("AppSettings:Token").Value));
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
 
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
@@ -95,6 +94,7 @@ namespace CarsImgApi.services
             return jwt;
 
         }
+
 
     }
 }

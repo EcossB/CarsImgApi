@@ -1,6 +1,6 @@
-﻿using CarsImgApi.Entity;
-using CarsImgApi.Interface;
-using CarsImgApi.Models;
+﻿using CarsImgApi.Models;
+using CarsImgApi.Models.DTO.LoginDTO;
+using CarsImgApi.Repository.Interface;
 using CarsImgApi.services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +21,8 @@ namespace CarsImgApi.Controllers
         [HttpPost]
         public async Task<ActionResult<LoginModel>> login(UserSqlConnection user)
         {
-            var token = _authService.login(user);
-            if (token.token.Length > 40)
+            var token = await _authService.login(user);
+            if (token is not null)
             {
                 return Ok(token);
             }
@@ -32,7 +32,7 @@ namespace CarsImgApi.Controllers
         [HttpPost("logout")]
         public async Task<ActionResult<MessageModel>> LogOut(LogOutModel userName)
         {
-            var message = _authService.logOut(userName);
+            var message =  _authService.logOut(userName);
             return Ok(message);
         }
 
