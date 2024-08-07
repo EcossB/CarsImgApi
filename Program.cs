@@ -1,4 +1,5 @@
-using CarsImgApi.Interface;
+using CarsImgApi.Repository.Implementation;
+using CarsImgApi.Repository.Interface;
 using CarsImgApi.services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -11,8 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<IDatosVehiculos, DataVehicleService>();
-builder.Services.AddScoped<IImageVehicle, ImgVehiclesService>();
+builder.Services.AddScoped<IDataVehicle, VehicleRepository>();
+builder.Services.AddScoped<IImageVehicle, VehicleImageRepository>();
 builder.Services.AddScoped<ILoginUser, AuthService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
