@@ -1,4 +1,4 @@
-﻿using CarsImgApi.Entity;
+﻿using CarsImgApi.Models.DTO.LoginDTO;
 
 namespace CarsImgApi.services
 {
