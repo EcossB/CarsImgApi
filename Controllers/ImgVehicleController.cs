@@ -1,4 +1,5 @@
-﻿using CarsImgApi.Models.DTO.ImgVehicleDTOS;
+﻿using CarsImgApi.Models.Domain;
+using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 using CarsImgApi.Repository.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,62 +13,154 @@ namespace CarsImgApi.Controllers
     [Authorize]
     public class ImgVehicleController : ControllerBase
     {
-        private readonly IImageVehicle _interfaceImg;
+        private readonly IImageVehicle _imageRepository;
 
         public ImgVehicleController(IImageVehicle interfaceImg)
         {
-            _interfaceImg = interfaceImg;   
+            _imageRepository = interfaceImg;   
         }
 
         [HttpPost]
-        public async Task<ActionResult<string>> saveImgData(ImgVehicleRequestDTO imgVehicle, string user)
+        [Route("addImage")]
+        public async Task<IActionResult> saveImgData(ImgVehicleRequestDTO imgVehicle)
         {
-            if (imgVehicle.Img_frontal.Length > 0 &&
-                imgVehicle.Img_lateral_izquierdo.Length > 0 &&
-                imgVehicle.Img_trasero.Length > 0 &&
-                imgVehicle.Img_lateral_derecho.Length > 0
-                )
-            {
-                await _interfaceImg.addImagesVehicle(imgVehicle, user);
-                return Ok(new { mensaje = "Imagenes Del vehiculo Guardados!" });
-            } else
-                return BadRequest(new { mensaje = "Debes de seleccionar un vehiculo y tirar las 4 fotos." });
+            //dto to domain model 
 
+            var vehicle = new ImgVehicles
+            {
+                Compania = imgVehicle.Compania,
+                Sucursal = imgVehicle.Sucursal,
+                Orden_Numero = imgVehicle.Orden_Numero,
+                Img_lateral_derecho = imgVehicle.Img_lateral_derecho,
+                Img_lateral_izquierdo = imgVehicle.Img_lateral_izquierdo,
+                Img_frontal = imgVehicle.Img_frontal,
+                Img_trasero = imgVehicle.Img_trasero,
+                Img_anexo1 = imgVehicle.Img_anexo1,
+                Img_anexo2 = imgVehicle.Img_anexo2,
+                Img_anexo3 = imgVehicle.Img_anexo3
+            };
+
+            var newVehicle = await _imageRepository.addImagesVehicle(vehicle, imgVehicle.UserToken);
+
+            if (newVehicle is not null) 
+            {
+                return Ok("New Vehicle images Save!");
+            }
+
+            return BadRequest();
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ImgVehicleRequestDTO>>> getAllVehiclesImg(string user)
+        [Route("GetAll/{user}")]
+        public async Task<IActionResult> getAllVehiclesImg([FromRoute] string user)
         {
-            var vehicleList = _interfaceImg.getAllImagesVehicles(user).Result;
-            return Ok(vehicleList);
+            var vehicleList = await _imageRepository.getAllImagesVehicles(user);
+
+            var response = new List<ImgVehicleResponseDTO>();
+
+            foreach (var vehicle in vehicleList) 
+            {
+                response.Add(new ImgVehicleResponseDTO
+                {
+                    Compania = vehicle.Compania,
+                    Sucursal = vehicle.Sucursal,
+                    Orden_Numero = vehicle.Orden_Numero,
+                    Img_lateral_derecho = vehicle.Img_lateral_derecho,
+                    Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
+                    Img_frontal = vehicle.Img_frontal,
+                    Img_trasero = vehicle.Img_trasero,
+                    Img_anexo1 = vehicle.Img_anexo1,
+                    Img_anexo2 = vehicle.Img_anexo2,
+                    Img_anexo3 = vehicle.Img_anexo3
+                });
+            }
+
+            return Ok(response);
         }
 
-        [HttpGet("{num_order}")]
-        public async Task<ActionResult<ImgVehicleRequestDTO>> getImgVehicleByNumOrder(int num_order, string user)
+        [HttpGet]
+        [Route("getByNumOrder/{num_order}/user{user}")]
+        public async Task<IActionResult> getImgVehicleByNumOrder([FromRoute]int num_order, [FromRoute] string user)
         {
-            var vehicleImg = _interfaceImg.getImageVehicle(num_order, user);
-            if(vehicleImg.Result != null)
+            var vehicle = await _imageRepository.getImageVehicle(num_order, user);
+
+            if(vehicle is not null)
             {
-                return Ok(vehicleImg.Result);
+                var reponse = new ImgVehicleResponseDTO
+                {
+                    Compania = vehicle.Compania,
+                    Sucursal = vehicle.Sucursal,
+                    Orden_Numero = vehicle.Orden_Numero,
+                    Img_lateral_derecho = vehicle.Img_lateral_derecho,
+                    Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
+                    Img_frontal = vehicle.Img_frontal,
+                    Img_trasero = vehicle.Img_trasero,
+                    Img_anexo1 = vehicle.Img_anexo1,
+                    Img_anexo2 = vehicle.Img_anexo2,
+                    Img_anexo3 = vehicle.Img_anexo3
+                };
+
+                return Ok(reponse);
             }
             return BadRequest("No existe ese numero de orden.");
             
         }
 
-        [HttpGet("/api/pagination")]
-        public async Task<ActionResult<List<ImgVehicleRequestDTO>>> imgPagination(string user, int pagina, int limiteRegistro)
+        [HttpGet]
+        [Route("pagination/user{user}/page{page}/limit{limit}")]
+        public async Task<ActionResult<List<ImgVehicleRequestDTO>>> imgPagination(string user, int page, int limit)
         {
-            var vehicleImg = _interfaceImg.getNext(user, pagina, limiteRegistro);
+            var vehicleList = await _imageRepository.paginateImages(user, page, limit);
 
-            return Ok(vehicleImg.Result);
+            var response = new List<ImgVehicleResponseDTO>();
+
+            foreach (var vehicle in vehicleList) 
+            {
+                response.Add(new ImgVehicleResponseDTO
+                {
+                    Compania = vehicle.Compania,
+                    Sucursal = vehicle.Sucursal,
+                    Orden_Numero = vehicle.Orden_Numero,
+                    Img_lateral_derecho = vehicle.Img_lateral_derecho,
+                    Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
+                    Img_frontal = vehicle.Img_frontal,
+                    Img_trasero = vehicle.Img_trasero,
+                    Img_anexo1 = vehicle.Img_anexo1,
+                    Img_anexo2 = vehicle.Img_anexo2,
+                    Img_anexo3 = vehicle.Img_anexo3
+                });
+            }
+
+            return Ok(response);
 
         }
 
-        [HttpGet("/api/get4first")]
-        public async Task<ActionResult<List<ImgVehicleRequestDTO>>> getFirst5(string user)
+        [HttpGet]
+        [Route("get4first/user{user}")]
+        public async Task<IActionResult> getFirst4Image(string user)
         {
-            var vehicleImg = _interfaceImg.getFirst4(user);
-            return Ok(vehicleImg.Result);
+            var vehicleList = await _imageRepository.get4FirstImages(user);
+
+            var response = new List<ImgVehicleResponseDTO>();
+
+            foreach (var vehicle in vehicleList)
+            {
+                response.Add(new ImgVehicleResponseDTO
+                {
+                    Compania = vehicle.Compania,
+                    Sucursal = vehicle.Sucursal,
+                    Orden_Numero = vehicle.Orden_Numero,
+                    Img_lateral_derecho = vehicle.Img_lateral_derecho,
+                    Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
+                    Img_frontal = vehicle.Img_frontal,
+                    Img_trasero = vehicle.Img_trasero,
+                    Img_anexo1 = vehicle.Img_anexo1,
+                    Img_anexo2 = vehicle.Img_anexo2,
+                    Img_anexo3 = vehicle.Img_anexo3
+                });
+            }
+
+            return Ok(response);
 
         }
 
