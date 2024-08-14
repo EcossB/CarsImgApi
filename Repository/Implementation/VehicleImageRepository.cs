@@ -1,4 +1,5 @@
-﻿using CarsImgApi.Models.DTO.ImgVehicleDTOS;
+﻿using CarsImgApi.Models.Domain;
+using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 using CarsImgApi.Repository.Interface;
 using CarsImgApi.services;
 using Microsoft.AspNetCore.Components.Forms;
@@ -11,13 +12,15 @@ namespace CarsImgApi.Repository.Implementation
     {
 
         private readonly IConfiguration _configuration;
+        private readonly ICreateImage _imageService;
 
-        public VehicleImageRepository(IConfiguration configuration)
+        public VehicleImageRepository(IConfiguration configuration, ICreateImage imageService)
         {
             _configuration = configuration;
+            _imageService = imageService;
         }
 
-        public async Task<string> addImagesVehicle(ImgVehicleRequestDTO vehicle, string user)
+        public async Task<ImgVehicles> addImagesVehicle(ImgVehicles vehicle, string user)
         {
             var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
 
@@ -51,46 +54,56 @@ namespace CarsImgApi.Repository.Implementation
                                              :IMGANEXO2, 
                                              :IMGANEXO3)";
 
+                        var listImage = await _imageService.CreateImageAsync(vehicle);
 
                         cmd.Parameters.Add(":COMPANIA", OracleDbType.Varchar2).Value = vehicle.Compania;
                         cmd.Parameters.Add(":sucursal", OracleDbType.Varchar2).Value = vehicle.Sucursal;
                         cmd.Parameters.Add(":SUCURSAL", OracleDbType.Int32).Value = vehicle.Orden_Numero;
-                        cmd.Parameters.Add(":IMGDER", OracleDbType.Clob).Value = vehicle.Img_lateral_derecho;
-                        cmd.Parameters.Add(":IMGIZQ", OracleDbType.Clob).Value = vehicle.Img_lateral_izquierdo;
-                        cmd.Parameters.Add(":IMGFRONT", OracleDbType.Clob).Value = vehicle.Img_frontal;
-                        cmd.Parameters.Add(":IMGTRAS", OracleDbType.Clob).Value = vehicle.Img_trasero;
-                        cmd.Parameters.Add(":IMGANEXO1", OracleDbType.Clob).Value = vehicle.Img_anexo1;
-                        cmd.Parameters.Add(":IMGANEXO2", OracleDbType.Clob).Value = vehicle.Img_anexo2;
-                        cmd.Parameters.Add(":IMGANEXO3", OracleDbType.Clob).Value = vehicle.Img_anexo3;
-
-
-
-                        var bytesImage = Convert.FromBase64String(vehicle.Img_lateral_derecho.Remove(0, 23));
-                        await File.WriteAllBytesAsync("c:\\ebatista\\ejemploImagen\\imagenEjemplo.jpeg", bytesImage);
+                        cmd.Parameters.Add(":IMGDER", OracleDbType.Clob).Value = listImage[0];
+                        cmd.Parameters.Add(":IMGIZQ", OracleDbType.Clob).Value = listImage[1];
+                        cmd.Parameters.Add(":IMGFRONT", OracleDbType.Clob).Value = listImage[2];
+                        cmd.Parameters.Add(":IMGTRAS", OracleDbType.Clob).Value = listImage[3];
+                        cmd.Parameters.Add(":IMGANEXO1", OracleDbType.Clob).Value = listImage[4];
+                        cmd.Parameters.Add(":IMGANEXO2", OracleDbType.Clob).Value = listImage[5];
+                        cmd.Parameters.Add(":IMGANEXO3", OracleDbType.Clob).Value = listImage[6];
 
                         await cmd.ExecuteNonQueryAsync();
 
-                        return "Imagenes Del vehiculo Guardados!";
+                        var newVehicle = new ImgVehicles
+                        {
+                            Compania = vehicle.Compania,
+                            Sucursal = vehicle.Sucursal,
+                            Orden_Numero = vehicle.Orden_Numero,
+                            Img_lateral_derecho = listImage[0],
+                            Img_lateral_izquierdo = listImage[1],
+                            Img_frontal = listImage[2],
+                            Img_trasero = listImage[3],
+                            Img_anexo1 = listImage[4],
+                            Img_anexo2 = listImage[5],
+                            Img_anexo3 = listImage[6],
+                        };
+
+                        return newVehicle;
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }
         }
 
-        public async Task<List<ImgVehicleRequestDTO>> getAllImagesVehicles(string user)
+        public async Task<List<ImgVehicles>> getAllImagesVehicles(string user)
         {
             var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
 
-            var imageVehiclesList = new List<ImgVehicleRequestDTO>();
+            var imageVehiclesList = new List<ImgVehicles>();
 
             using (OracleConnection con = new OracleConnection(stringConnection))
             {
                 using (OracleCommand cmd = con.CreateCommand())
                 {
-                    con.Open();
+                    await con.OpenAsync();
                     cmd.CommandText = @"SELECT COMPANIA,
                                                SUCURSAL,
                                                NUM_ORDEN,
@@ -106,9 +119,9 @@ namespace CarsImgApi.Repository.Implementation
 
                     var reader = await cmd.ExecuteReaderAsync();
 
-                    while (reader.Read())
+                    while (await reader.ReadAsync())
                     {
-                        var vehicle = new ImgVehicleRequestDTO
+                        var vehicle = new ImgVehicles
                         {
                             Compania = reader["COMPANIA"].ToString(),
                             Sucursal = reader["SUCURSAL"].ToString(),
@@ -120,7 +133,6 @@ namespace CarsImgApi.Repository.Implementation
                             Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
                             Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
                             Img_anexo3 = reader["IMG_ANEXO3"].ToString()
-
                         };
                         imageVehiclesList.Add(vehicle);
                     }
@@ -129,26 +141,26 @@ namespace CarsImgApi.Repository.Implementation
             return imageVehiclesList;
         }
 
-        public async Task<ImgVehicleRequestDTO> getImageVehicle(int num_order, string user)
+        public async Task<ImgVehicles> getImageVehicle(int num_order, string user)
         {
             var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            var imgVehicleModel = new ImgVehicles();
 
-            var imgVehicleModel = new ImgVehicleRequestDTO();
             using (OracleConnection con = new OracleConnection(stringConnection))
             {
                 using (OracleCommand cmd = con.CreateCommand())
                 {
-                    con.Open();
+                    await con.OpenAsync();
 
-                    cmd.CommandText = @"SELECT *
+                    cmd.CommandText = $@"SELECT *
                                             FROM IMAGENES_VEHICULOS
-                                          WHERE NUM_ORDEN=" + num_order + "";
+                                          WHERE NUM_ORDEN = {num_order} ";
 
                     var reader = await cmd.ExecuteReaderAsync();
 
-                    while (reader.Read())
+                    while (await reader.ReadAsync())
                     {
-                        var imgVehicle = new ImgVehicleRequestDTO
+                        var imgVehicle = new ImgVehicles
                         {
                             Compania = reader["COMPANIA"].ToString(),
                             Sucursal = reader["SUCURSAL"].ToString(),
@@ -169,38 +181,36 @@ namespace CarsImgApi.Repository.Implementation
         }
 
 
-        public async Task<List<ImgVehicleRequestDTO>> getFirst4(string user)
+        public async Task<List<ImgVehicles>> get4FirstImages(string user)
         {
             var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
 
-            var imageVehiclesList5 = new List<ImgVehicleRequestDTO>();
+            var first4Image = new List<ImgVehicles>();
             using (OracleConnection con = new OracleConnection(stringConnection))
             {
                 using (OracleCommand cmd = con.CreateCommand())
                 {
-                    con.Open();
+                    await con.OpenAsync();
 
-                    cmd.CommandText = @"SELECT * 
-                                            FROM
-                                           (SELECT COMPANIA,
-                                                   SUCURSAL,
-                                                   NUM_ORDEN,
-                                                   IMG_LATERAL_DERECHO,
-                                                   IMG_LATERAL_IZQUIERDO,
-                                                   IMG_FRONTAL,
-                                                   IMG_TRASERO,
-                                                   IMG_ANEXO1,
-                                                   IMG_ANEXO2,
-                                                   IMG_ANEXO3
-                                                   FROM IMAGENES_VEHICULOS
-                                                   order by num_orden asc)
-                                            WHERE ROWNUM <= 4";
+                    cmd.CommandText = @"SELECT COMPANIA,
+                                               SUCURSAL,
+                                               NUM_ORDEN,
+                                               IMG_LATERAL_DERECHO,
+                                               IMG_LATERAL_IZQUIERDO,
+                                               IMG_FRONTAL,
+                                               IMG_TRASERO,
+                                               IMG_ANEXO1,
+                                               IMG_ANEXO2,
+                                               IMG_ANEXO3
+                                               FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                               WHERE ROWNUM <= 4
+                                            ORDER BY NUM_ORDEN ASC";
 
                     var reader = await cmd.ExecuteReaderAsync();
 
-                    while (reader.Read())
+                    while (await reader.ReadAsync())
                     {
-                        var imgVehicle = new ImgVehicleRequestDTO
+                        var imgVehicle = new ImgVehicles
                         {
                             Compania = reader["COMPANIA"].ToString(),
                             Sucursal = reader["SUCURSAL"].ToString(),
@@ -213,17 +223,19 @@ namespace CarsImgApi.Repository.Implementation
                             Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
                             Img_anexo3 = reader["IMG_ANEXO3"].ToString()
                         };
-                        imageVehiclesList5.Add(imgVehicle);
+                        first4Image.Add(imgVehicle);
                     }
                 }
             }
-            return imageVehiclesList5;
+            return first4Image;
 
         }
 
-        public async Task<List<ImgVehicleRequestDTO>> getNext(string user, int pagina, int limiteRegistro)
+        public async Task<List<ImgVehicles>> paginateImages(string user, int pagina, int limiteRegistro)
         {
-            return getAllImagesVehicles(user).Result.Skip((pagina - 1) * limiteRegistro).Take(limiteRegistro).ToList();
+            var ImageList = await getAllImagesVehicles(user);
+
+             return ImageList.Skip((pagina - 1) * limiteRegistro).Take(limiteRegistro).ToList();
 
         }
 
