@@ -1,18 +1,19 @@
-﻿using CarsImgApi.Models.DTO.ImgVehicleDTOS;
+﻿using CarsImgApi.Models.Domain;
+using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 
 namespace CarsImgApi.Repository.Interface
 {
     public interface IImageVehicle
     {
-        Task<string> addImagesVehicle(ImgVehicleRequestDTO vehicle, string user);
+        public Task<ImgVehicles> addImagesVehicle(ImgVehicles vehicle, string user);
 
-        Task<List<ImgVehicleRequestDTO>> getAllImagesVehicles(string user);
+        public Task<List<ImgVehicles>> getAllImagesVehicles(string user);
 
-        Task<ImgVehicleRequestDTO> getImageVehicle(int num_order, string user);
+        public Task<ImgVehicles> getImageVehicle(int num_order, string user);
 
-        public Task<List<ImgVehicleRequestDTO>> getNext(string user, int pagina, int limiteRegistro);
+        public Task<List<ImgVehicles>> paginateImages(string user, int pagina, int limiteRegistro);
 
-        public Task<List<ImgVehicleRequestDTO>> getFirst4(string user);
+        public Task<List<ImgVehicles>> get4FirstImages(string user);
 
     }
 }
