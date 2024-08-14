@@ -15,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IDataVehicle, VehicleRepository>();
 builder.Services.AddScoped<IImageVehicle, VehicleImageRepository>();
 builder.Services.AddScoped<ILoginUser, AuthService>();
+builder.Services.AddScoped<ICreateImage, CreateImageService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
