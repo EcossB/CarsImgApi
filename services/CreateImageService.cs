@@ -57,5 +57,52 @@ namespace CarsImgApi.services
 
             return pathImageList; //returning the list. 
         }
+
+        public async Task<ImgVehicles> GetImageAsync(ImgVehicles vehicleImages)
+        {
+            //storing the path retreived from the database.
+            var listPathImages = new List<string>
+            {
+                vehicleImages.Img_lateral_derecho,
+                vehicleImages.Img_lateral_izquierdo,
+                vehicleImages.Img_frontal,
+                vehicleImages.Img_trasero,
+                vehicleImages.Img_anexo1,
+                vehicleImages.Img_anexo2,
+                vehicleImages.Img_anexo3
+            };
+
+            //getting the bytes of the images and adding to a new list of type bytes.
+            var listBynaryFile = new List<byte[]>();
+
+            foreach(var path in listPathImages)
+            {
+               listBynaryFile.Add(await File.ReadAllBytesAsync(path));
+            }
+
+            //list to store the base 64 string 
+            var listBase64String = new List<string>();  
+
+            foreach (var bytes in listBynaryFile)
+            {
+                listBase64String.Add(Convert.ToBase64String(bytes));
+            }
+
+            var vehicle = new ImgVehicles
+            {
+                Compania = vehicleImages.Compania,
+                Sucursal = vehicleImages.Sucursal,
+                Orden_Numero = vehicleImages.Orden_Numero,
+                Img_lateral_derecho = listBase64String[0],
+                Img_lateral_izquierdo = listBase64String[1],
+                Img_frontal = listBase64String[2],
+                Img_trasero = listBase64String[3],
+                Img_anexo1 = listBase64String[4],
+                Img_anexo2  = listBase64String[5],
+                Img_anexo3 = listBase64String[6]
+            };
+
+            return vehicle;
+        }
     }
 }
