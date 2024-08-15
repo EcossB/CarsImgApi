@@ -134,7 +134,8 @@ namespace CarsImgApi.Repository.Implementation
                             Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
                             Img_anexo3 = reader["IMG_ANEXO3"].ToString()
                         };
-                        imageVehiclesList.Add(vehicle);
+
+                        imageVehiclesList.Add(await _imageService.GetImageAsync(vehicle));
                     }
                 }
             }
@@ -173,7 +174,8 @@ namespace CarsImgApi.Repository.Implementation
                             Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
                             Img_anexo3 = reader["IMG_ANEXO3"].ToString()
                         };
-                        imgVehicleModel = imgVehicle;
+
+                        imgVehicleModel = await _imageService.GetImageAsync(imgVehicle);
                     }
                 }
             }
@@ -223,7 +225,8 @@ namespace CarsImgApi.Repository.Implementation
                             Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
                             Img_anexo3 = reader["IMG_ANEXO3"].ToString()
                         };
-                        first4Image.Add(imgVehicle);
+
+                        first4Image.Add(await _imageService.GetImageAsync(imgVehicle));
                     }
                 }
             }
