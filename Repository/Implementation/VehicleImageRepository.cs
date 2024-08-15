@@ -31,7 +31,7 @@ namespace CarsImgApi.Repository.Implementation
                     using (OracleCommand cmd = con.CreateCommand())
                     {
                         await con.OpenAsync();
-                        cmd.CommandText = @"INSERT INTO IMAGENES_VEHICULOS 
+                        cmd.CommandText = @"INSERT INTO SNAPSHOTDB.IMAGENES_VEHICULOS 
                                             (COMPANIA,
                                              SUCURSAL,
                                              NUM_ORDEN,
@@ -114,7 +114,7 @@ namespace CarsImgApi.Repository.Implementation
                                                IMG_ANEXO1,
                                                IMG_ANEXO2,
                                                IMG_ANEXO3
-                                            FROM IMAGENES_VEHICULOS
+                                            FROM SNAPSHOTDB.IMAGENES_VEHICULOS
                                              ORDER BY NUM_ORDEN ASC";
 
                     var reader = await cmd.ExecuteReaderAsync();
@@ -154,7 +154,7 @@ namespace CarsImgApi.Repository.Implementation
                     await con.OpenAsync();
 
                     cmd.CommandText = $@"SELECT *
-                                            FROM IMAGENES_VEHICULOS
+                                            FROM SNAPSHOTDB.IMAGENES_VEHICULOS
                                           WHERE NUM_ORDEN = {num_order} ";
 
                     var reader = await cmd.ExecuteReaderAsync();
