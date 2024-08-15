@@ -110,7 +110,7 @@ namespace CarsImgApi.Repository.Implementation
                                         marca, 
                                         modelo, 
                                         placa 
-                                        from V_ORDENES_PARA_RECEPCION";
+                                        from SNAPSHOTDB.V_ORDENES_PARA_RECEPCION";
                     var reader = await cmd.ExecuteReaderAsync();
 
                     while (await reader.ReadAsync())
@@ -148,7 +148,7 @@ namespace CarsImgApi.Repository.Implementation
                 {
                     await con.OpenAsync();
                     cmd.CommandText = @"select * 
-                                        from v_ordenes_para_recepcion
+                                        from SNAPSHOTDB.v_ordenes_para_recepcion
                                         where placa= '" + placa + "'";
                     var reader = await cmd.ExecuteReaderAsync();
                     while (await reader.ReadAsync())
