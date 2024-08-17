@@ -15,5 +15,7 @@ namespace CarsImgApi.Repository.Interface
 
         public Task<List<ImgVehicles>> get4FirstImages(string user);
 
+        public Task<int> numberPages(string user);
+
     }
 }
