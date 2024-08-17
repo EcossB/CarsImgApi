@@ -233,13 +233,38 @@ namespace CarsImgApi.Repository.Implementation
             return first4Image;
 
         }
-
+        
         public async Task<List<ImgVehicles>> paginateImages(string user, int pagina, int limiteRegistro)
         {
             var ImageList = await getAllImagesVehicles(user);
 
              return ImageList.Skip((pagina - 1) * limiteRegistro).Take(limiteRegistro).ToList();
 
+        }
+
+        public async Task<int> numberPages(string user)
+        {
+            int numberOfPages = 0;
+            var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            using(OracleConnection con = new OracleConnection(stringConnection))
+            {
+                using(OracleCommand cmd = con.CreateCommand())
+                {
+                    await con.OpenAsync();
+
+                    cmd.CommandText = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
+                                                FROM SNAPSHOTDB.IMAGENES_VEHICULOS";
+
+                    var reader = await cmd.ExecuteReaderAsync();
+
+                    while (await reader.ReadAsync())
+                    {
+                        numberOfPages = Convert.ToInt32(reader["PAGINAS"]);
+                    }
+
+                    return numberOfPages;
+                }
+            }
         }
 
         public string GetName(string token)
