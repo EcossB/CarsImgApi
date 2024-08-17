@@ -108,15 +108,16 @@ namespace CarsImgApi.Controllers
 
         [HttpGet]
         [Route("pagination/user{user}/page{page}/limit{limit}")]
-        public async Task<ActionResult<List<ImgVehicleRequestDTO>>> imgPagination(string user, int page, int limit)
+        public async Task<ActionResult<ImgVehiclePaginationDTO>> imgPagination(string user, int page, int limit)
         {
             var vehicleList = await _imageRepository.paginateImages(user, page, limit);
+            var totalPages = await _imageRepository.numberPages(user);
 
-            var response = new List<ImgVehicleResponseDTO>();
+            var imageVehicleList = new List<ImgVehicleResponseDTO>();
 
             foreach (var vehicle in vehicleList) 
             {
-                response.Add(new ImgVehicleResponseDTO
+                imageVehicleList.Add(new ImgVehicleResponseDTO
                 {
                     Compania = vehicle.Compania,
                     Sucursal = vehicle.Sucursal,
@@ -130,6 +131,12 @@ namespace CarsImgApi.Controllers
                     Img_anexo3 = vehicle.Img_anexo3
                 });
             }
+
+            var response = new ImgVehiclePaginationDTO
+            {
+                imgCars = imageVehicleList,
+                pages = totalPages,
+            };
 
             return Ok(response);
 
