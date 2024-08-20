@@ -142,7 +142,7 @@ namespace CarsImgApi.Repository.Implementation
             return imageVehiclesList;
         }
 
-        public async Task<ImgVehicles> getImageVehicle(int num_order, string user)
+        public async Task<ImgVehicles?> getImageVehicle(int num_order, string user)
         {
             var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
             var imgVehicleModel = new ImgVehicles();
@@ -158,6 +158,11 @@ namespace CarsImgApi.Repository.Implementation
                                           WHERE NUM_ORDEN = {num_order} ";
 
                     var reader = await cmd.ExecuteReaderAsync();
+
+                    if(reader.HasRows == false)
+                    {
+                        return null;
+                    }
 
                     while (await reader.ReadAsync())
                     {
