@@ -24,7 +24,7 @@ namespace CarsImgApi.Controllers
         }
 
         [HttpGet]
-        [Route("vehicle/{user}")]
+        [Route("orders/{user}")]
         public async Task<IActionResult> GetAllVehiclesData([FromRoute] string user)
         {
             var vehicles = await _interfaceVehicles.getAllVehiclesData(user);
