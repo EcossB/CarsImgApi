@@ -35,6 +35,9 @@ namespace CarsImgApi.Controllers
             {
                 VehicleList.Add(new VehicleResponseDtos()
                 {
+                    Compania = vehicle.Compania,
+                    Orden_Numero = vehicle.Orden_Numero,
+                    Sucursal = vehicle.Sucursal,
                     Nombre = vehicle.Nombre_cliente,
                     Marca = vehicle.Marca,
                     Modelo = vehicle.Modelo,
@@ -57,6 +60,9 @@ namespace CarsImgApi.Controllers
 
                 var vehicleResponse = new VehicleResponseDtos()
                 {
+                    Compania = vehicle.Compania,
+                    Orden_Numero = vehicle.Orden_Numero,    
+                    Sucursal = vehicle.Sucursal,
                     Nombre = vehicle.Nombre_cliente,
                     Marca = vehicle.Marca,
                     Modelo = vehicle.Modelo,
