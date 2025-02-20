@@ -1,4 +1,5 @@
-﻿using CarsImgApi.Models.Domain;
+﻿using System.Diagnostics;
+using CarsImgApi.Models.Domain;
 using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 using CarsImgApi.Repository.Interface;
 using CarsImgApi.services;
@@ -22,8 +23,9 @@ namespace CarsImgApi.Repository.Implementation
 
         public async Task<ImgVehicles> addImagesVehicle(ImgVehicles vehicle, string user)
         {
-            var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
-
+            // var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
+            var timer = Stopwatch.StartNew();
             try
             {
                 using (OracleConnection con = new OracleConnection(stringConnection))
@@ -83,21 +85,29 @@ namespace CarsImgApi.Repository.Implementation
                             Img_anexo3 = listImage[6],
                         };
 
+                        timer.Stop();
+                        Console.WriteLine($"Time elapsed creating: {timer.ElapsedMilliseconds}");
+                        
                         return newVehicle;
                     }
                 }
             }
             catch (Exception)
             {
-                throw;
+                throw null;
             }
         }
 
         public async Task<List<ImgVehicles>> getAllImagesVehicles(string user)
         {
-            var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
-
+            try 
+            {
+            // var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
             var imageVehiclesList = new List<ImgVehicles>();
+
+            var timer = new Stopwatch();
+            timer.Start();
 
             using (OracleConnection con = new OracleConnection(stringConnection))
             {
@@ -139,67 +149,87 @@ namespace CarsImgApi.Repository.Implementation
                     }
                 }
             }
-            return imageVehiclesList;
+                timer.Stop();
+                Console.WriteLine($"Time elapsed reading images: " + timer.ElapsedMilliseconds);
+                return imageVehiclesList;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
         }
 
         public async Task<ImgVehicles?> getImageVehicle(int num_order, string user)
         {
-            var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            // var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
             var imgVehicleModel = new ImgVehicles();
 
-            using (OracleConnection con = new OracleConnection(stringConnection))
+            try
             {
-                using (OracleCommand cmd = con.CreateCommand())
+                using (OracleConnection con = new OracleConnection(stringConnection))
                 {
-                    await con.OpenAsync();
+                    using (OracleCommand cmd = con.CreateCommand())
+                    {
+                        await con.OpenAsync();
 
-                    cmd.CommandText = $@"SELECT *
+                        cmd.CommandText = $@"SELECT *
                                             FROM SNAPSHOTDB.IMAGENES_VEHICULOS
                                           WHERE NUM_ORDEN = {num_order} ";
 
-                    var reader = await cmd.ExecuteReaderAsync();
+                        var reader = await cmd.ExecuteReaderAsync();
 
-                    if(reader.HasRows == false)
-                    {
-                        return null;
-                    }
-
-                    while (await reader.ReadAsync())
-                    {
-                        var imgVehicle = new ImgVehicles
+                        if (reader.HasRows == false)
                         {
-                            Compania = reader["COMPANIA"].ToString(),
-                            Sucursal = reader["SUCURSAL"].ToString(),
-                            Orden_Numero = Convert.ToInt32(reader["NUM_ORDEN"]),
-                            Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
-                            Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
-                            Img_frontal = reader["IMG_FRONTAL"].ToString(),
-                            Img_trasero = reader["IMG_TRASERO"].ToString(),
-                            Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
-                            Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
-                            Img_anexo3 = reader["IMG_ANEXO3"].ToString()
-                        };
+                            return null;
+                        }
 
-                        imgVehicleModel = await _imageService.GetImageAsync(imgVehicle);
+                        while (await reader.ReadAsync())
+                        {
+                            var imgVehicle = new ImgVehicles
+                            {
+                                Compania = reader["COMPANIA"].ToString(),
+                                Sucursal = reader["SUCURSAL"].ToString(),
+                                Orden_Numero = Convert.ToInt32(reader["NUM_ORDEN"]),
+                                Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
+                                Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
+                                Img_frontal = reader["IMG_FRONTAL"].ToString(),
+                                Img_trasero = reader["IMG_TRASERO"].ToString(),
+                                Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
+                                Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
+                                Img_anexo3 = reader["IMG_ANEXO3"].ToString()
+                            };
+
+                            imgVehicleModel = await _imageService.GetImageAsync(imgVehicle);
+                        }
                     }
                 }
+
+                return imgVehicleModel;
             }
-            return imgVehicleModel;
+            catch (Exception e)
+            {
+                throw null;
+            }
         }
 
 
         public async Task<List<ImgVehicles>> get4FirstImages(string user)
         {
-            var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
-
-            var first4Image = new List<ImgVehicles>();
-            using (OracleConnection con = new OracleConnection(stringConnection))
+            // var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
+            try
             {
-                using (OracleCommand cmd = con.CreateCommand())
+                var first4Image = new List<ImgVehicles>();
+                using (OracleConnection con = new OracleConnection(stringConnection))
                 {
-                    await con.OpenAsync();
+                    using (OracleCommand cmd = con.CreateCommand())
+                    {
+                        await con.OpenAsync();
 
-                    cmd.CommandText = @"SELECT COMPANIA,
+                        cmd.CommandText = @"SELECT COMPANIA,
                                                SUCURSAL,
                                                NUM_ORDEN,
                                                IMG_LATERAL_DERECHO,
@@ -213,32 +243,38 @@ namespace CarsImgApi.Repository.Implementation
                                                WHERE ROWNUM <= 4
                                             ORDER BY NUM_ORDEN ASC";
 
-                    var reader = await cmd.ExecuteReaderAsync();
+                        var reader = await cmd.ExecuteReaderAsync();
 
-                    while (await reader.ReadAsync())
-                    {
-                        var imgVehicle = new ImgVehicles
+                        while (await reader.ReadAsync())
                         {
-                            Compania = reader["COMPANIA"].ToString(),
-                            Sucursal = reader["SUCURSAL"].ToString(),
-                            Orden_Numero = Convert.ToInt32(reader["NUM_ORDEN"]),
-                            Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
-                            Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
-                            Img_frontal = reader["IMG_FRONTAL"].ToString(),
-                            Img_trasero = reader["IMG_TRASERO"].ToString(),
-                            Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
-                            Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
-                            Img_anexo3 = reader["IMG_ANEXO3"].ToString()
-                        };
+                            var imgVehicle = new ImgVehicles
+                            {
+                                Compania = reader["COMPANIA"].ToString(),
+                                Sucursal = reader["SUCURSAL"].ToString(),
+                                Orden_Numero = Convert.ToInt32(reader["NUM_ORDEN"]),
+                                Img_lateral_derecho = reader["IMG_LATERAL_DERECHO"].ToString(),
+                                Img_lateral_izquierdo = reader["IMG_LATERAL_IZQUIERDO"].ToString(),
+                                Img_frontal = reader["IMG_FRONTAL"].ToString(),
+                                Img_trasero = reader["IMG_TRASERO"].ToString(),
+                                Img_anexo1 = reader["IMG_ANEXO1"].ToString(),
+                                Img_anexo2 = reader["IMG_ANEXO2"].ToString(),
+                                Img_anexo3 = reader["IMG_ANEXO3"].ToString()
+                            };
 
-                        first4Image.Add(await _imageService.GetImageAsync(imgVehicle));
+                            first4Image.Add(await _imageService.GetImageAsync(imgVehicle));
+                        }
                     }
                 }
-            }
-            return first4Image;
 
+                return first4Image;
+
+            }
+            catch (Exception e)
+            {
+                throw null;
+            }
         }
-        
+
         public async Task<List<ImgVehicles>> paginateImages(string user, int pagina, int limiteRegistro)
         {
             var ImageList = await getAllImagesVehicles(user);
@@ -250,32 +286,40 @@ namespace CarsImgApi.Repository.Implementation
         public async Task<int> numberPages(string user)
         {
             int numberOfPages = 0;
-            var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
-            using(OracleConnection con = new OracleConnection(stringConnection))
+            // var stringConnection = getConnectionString(_poolSqlConnections.get(GetName(user)));
+            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
+            try
             {
-                using(OracleCommand cmd = con.CreateCommand())
+                using (OracleConnection con = new OracleConnection(stringConnection))
                 {
-                    await con.OpenAsync();
+                    using (OracleCommand cmd = con.CreateCommand())
+                    {
+                        await con.OpenAsync();
 
-                    cmd.CommandText = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
+                        cmd.CommandText = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
                                                 FROM SNAPSHOTDB.IMAGENES_VEHICULOS";
 
-                    var reader = await cmd.ExecuteReaderAsync();
+                        var reader = await cmd.ExecuteReaderAsync();
 
-                    while (await reader.ReadAsync())
-                    {
-                        numberOfPages = Convert.ToInt32(reader["PAGINAS"]);
+                        while (await reader.ReadAsync())
+                        {
+                            numberOfPages = Convert.ToInt32(reader["PAGINAS"]);
+                        }
+
+                        return numberOfPages;
                     }
-
-                    return numberOfPages;
                 }
+            }
+            catch (Exception)
+            {
+                throw null;
             }
         }
 
-        public string GetName(string token)
+        /*public string GetName(string token)
         {
             DecryptService decryptService = new DecryptService(_configuration);
             return decryptService.GetName(token);
-        }
+        }*/
     }
 }
