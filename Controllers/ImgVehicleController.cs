@@ -9,7 +9,6 @@ namespace CarsImgApi.Controllers
 {
     [Route("v1/[controller]")]
     [ApiController]
-
     [Authorize]
     public class ImgVehicleController : ControllerBase
     {
@@ -40,7 +39,7 @@ namespace CarsImgApi.Controllers
                 Img_anexo3 = imgVehicle.Img_anexo3
             };
 
-            var newVehicle = await _imageRepository.addImagesVehicle(vehicle, imgVehicle.UserToken);
+            var newVehicle = await _imageRepository.addImagesVehicle(vehicle, imgVehicle.Usuario);
 
             if (newVehicle is not null) 
             {
