@@ -25,29 +25,26 @@ namespace CarsImgApi.services
         {
             try
             {
-
                 var conString = BaseService._poolSqlConnections.getConnectionString(user);
-                using(OracleConnection con = new OracleConnection(conString))
+                await using(OracleConnection con = new OracleConnection(conString))
                 {
                     await con.OpenAsync();
+                    await con.CloseAsync();
                 }
                 BaseService._poolSqlConnections.add(user);
 
                 LoginModel model = new LoginModel
                 {
                     userName = user.userName,
-                    password = user.password,
-                    token = generateToken(user)
+                    token = GenerateToken(user)
                 };
-
+                
                 return model;
 
             } catch (Exception)
             {
                 LoginModel model = new LoginModel
                 {
-                    userName = "",
-                    password = "",
                     token = "Login Invalido. Compruebe Credenciales."
                 };
 
@@ -72,14 +69,14 @@ namespace CarsImgApi.services
             return message;
         }
 
-        public string generateToken(UserSqlConnection user)
+        public string GenerateToken(UserSqlConnection user)
         {
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.userName)
             };
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+            /*var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
 
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
@@ -91,7 +88,18 @@ namespace CarsImgApi.services
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return jwt;
+            return jwt;*/
+            
+            var key =  new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); // creando las credenciales del token
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],   
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(15),
+                signingCredentials: creds);
+        
+            return new JwtSecurityTokenHandler().WriteToken(token);
 
         }
 
