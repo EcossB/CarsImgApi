@@ -92,16 +92,20 @@ namespace CarsImgApi.Repository.Implementation
 
         public async Task<IEnumerable<Vehicle>> getAllVehiclesData(string user)
         {
-            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
 
-            List<Vehicle> vehicles = new List<Vehicle>();
-
-            using (OracleConnection con = new OracleConnection(stringConnection))
+            try
             {
-                using (OracleCommand cmd = con.CreateCommand())
+                //var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+                var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
+
+                List<Vehicle> vehicles = new List<Vehicle>();
+
+                using (OracleConnection con = new OracleConnection(stringConnection))
                 {
-                    await con.OpenAsync();
-                    cmd.CommandText = @"select 
+                    using (OracleCommand cmd = con.CreateCommand())
+                    {
+                        await con.OpenAsync();
+                        cmd.CommandText = @"select 
                                         compania, 
                                         sucursal, 
                                         orden_numero, 
@@ -111,65 +115,79 @@ namespace CarsImgApi.Repository.Implementation
                                         modelo, 
                                         placa 
                                         from SNAPSHOTDB.V_ORDENES_PARA_RECEPCION";
-                    var reader = await cmd.ExecuteReaderAsync();
+                        var reader = await cmd.ExecuteReaderAsync();
 
-                    while (await reader.ReadAsync())
-                    {
-                        var vehicle = new Vehicle
+                        while (await reader.ReadAsync())
                         {
-                            Compania = reader["compania"].ToString(),
-                            Sucursal = reader["sucursal"].ToString(),
-                            Orden_Numero = Convert.ToInt32(reader["orden_numero"]),
-                            Fecha_orden = (DateTime)reader["fecha_orden"],
-                            Nombre_cliente = reader["nombre_cliente"].ToString(),
-                            Marca = reader["marca"].ToString(),
-                            Modelo = reader["modelo"].ToString(),
-                            Placa = reader["placa"].ToString(),
-                        };
+                            var vehicle = new Vehicle
+                            {
+                                Compania = reader["compania"].ToString(),
+                                Sucursal = reader["sucursal"].ToString(),
+                                Orden_Numero = Convert.ToInt32(reader["orden_numero"]),
+                                Fecha_orden = (DateTime)reader["fecha_orden"],
+                                Nombre_cliente = reader["nombre_cliente"].ToString(),
+                                Marca = reader["marca"].ToString(),
+                                Modelo = reader["modelo"].ToString(),
+                                Placa = reader["placa"].ToString(),
+                            };
 
-                        vehicles.Add(vehicle);
+                            vehicles.Add(vehicle);
+                        }
                     }
                 }
+
+                return vehicles;
             }
-            return vehicles;
+            catch (Exception ex)
+            {
+                throw null;
+            }
 
         }
 
         public async Task<Vehicle> getVehicleByPlaca(string placa, string user)
         {
 
-            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
-
-            var Vehicle = new Vehicle();
-
-            using (OracleConnection con = new OracleConnection(stringConnection))
+            try
             {
-                using (OracleCommand cmd = con.CreateCommand())
+                //var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
+                var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
+                var Vehicle = new Vehicle();
+
+                using (OracleConnection con = new OracleConnection(stringConnection))
                 {
-                    await con.OpenAsync();
-                    cmd.CommandText = @"select * 
+                    using (OracleCommand cmd = con.CreateCommand())
+                    {
+                        await con.OpenAsync();
+                        cmd.CommandText = @"select * 
                                         from SNAPSHOTDB.v_ordenes_para_recepcion
                                         where placa= '" + placa + "'";
-                    var reader = await cmd.ExecuteReaderAsync();
-                    while (await reader.ReadAsync())
-                    {
-                        var vehicleRead = new Vehicle
+                        var reader = await cmd.ExecuteReaderAsync();
+                        while (await reader.ReadAsync())
                         {
-                            Compania = reader["compania"].ToString(),
-                            Sucursal = reader["sucursal"].ToString(),
-                            Orden_Numero = Convert.ToInt32(reader["orden_numero"]),
-                            Fecha_orden = (DateTime)reader["fecha_orden"],
-                            Nombre_cliente = reader["nombre_cliente"].ToString(),
-                            Marca = reader["marca"].ToString(),
-                            Modelo = reader["modelo"].ToString(),
-                            Placa = reader["placa"].ToString(),
-                        };
-                        Vehicle = vehicleRead;
+                            var vehicleRead = new Vehicle
+                            {
+                                Compania = reader["compania"].ToString(),
+                                Sucursal = reader["sucursal"].ToString(),
+                                Orden_Numero = Convert.ToInt32(reader["orden_numero"]),
+                                Fecha_orden = (DateTime)reader["fecha_orden"],
+                                Nombre_cliente = reader["nombre_cliente"].ToString(),
+                                Marca = reader["marca"].ToString(),
+                                Modelo = reader["modelo"].ToString(),
+                                Placa = reader["placa"].ToString(),
+                            };
+                            Vehicle = vehicleRead;
+                        }
                     }
                 }
+
+                return Vehicle;
             }
-            return Vehicle;
-        }
+            catch (Exception ex)
+            {
+                throw null;
+            }
+        } 
 
 
     }
