@@ -1,4 +1,5 @@
-﻿using CarsImgApi.Models;
+﻿using System.Diagnostics;
+using CarsImgApi.Models;
 using CarsImgApi.Models.Domain;
 using CarsImgApi.Repository.Interface;
 
@@ -9,6 +10,8 @@ namespace CarsImgApi.services
 
         public async Task<List<string>> CreateImageAsync(ImgVehicles vehicleImages)
         {
+            
+
             /*
              Image list will containt all the image base64 string send it by the webcam
              */
@@ -24,7 +27,7 @@ namespace CarsImgApi.services
                 vehicleImages.Img_anexo3
             };
 
-            /**
+            /*
              imageSidesList is a list that contains the differents side of the image. It's purporse its to create the image path dinamically
              */
             var imageSidesList = new List<string>
@@ -44,7 +47,6 @@ namespace CarsImgApi.services
 
             foreach (var img in ListBase64Strings)
             {
-                
                 //first converting the base64 string to a byte[]
                 var bytesImage = Convert.FromBase64String(img.Remove(0, 23));
                 //then i create the image dinamically
@@ -54,12 +56,13 @@ namespace CarsImgApi.services
 
                 iterator = iterator + 1;
             }
-
+            
             return pathImageList; //returning the list. 
         }
 
         public async Task<ImgVehicles> GetImageAsync(ImgVehicles vehicleImages)
         {
+           
             //storing the path retreived from the database.
             var listPathImages = new List<string>
             {
@@ -102,6 +105,7 @@ namespace CarsImgApi.services
                 Img_anexo3 = listBase64String[6]
             };
 
+            
             return vehicle;
         }
     }
