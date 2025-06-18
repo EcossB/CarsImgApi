@@ -10,6 +10,9 @@ namespace CarsImgApi.services
 
         public async Task<List<string>> CreateImageAsync(ImgVehicles vehicleImages)
         {
+
+            /*Route disk where i save the images.*/
+            string diskRoute = $"e:\\imagenes\\";
             
 
             /*
@@ -50,9 +53,13 @@ namespace CarsImgApi.services
                 //first converting the base64 string to a byte[]
                 var bytesImage = Convert.FromBase64String(img.Remove(0, 23));
                 //then i create the image dinamically
-                await File.WriteAllBytesAsync($"c:\\ebatista\\ejemploImagen\\{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg", bytesImage);
+                //await File.WriteAllBytesAsync($"c:\\ebatista\\ejemploImagen\\{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg", bytesImage);
                 //and at the end i add the new image path created. 
-                pathImageList.Add($"c:\\ebatista\\ejemploImagen\\{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg");
+                //pathImageList.Add($"c:\\ebatista\\ejemploImagen\\{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg");
+
+                //Se esta utilzando el disco E para que guarde las imagenes.
+                await File.WriteAllBytesAsync($"{diskRoute}{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg", bytesImage);
+                pathImageList.Add($"{diskRoute}{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg");
 
                 iterator = iterator + 1;
             }
