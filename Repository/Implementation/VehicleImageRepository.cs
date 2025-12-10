@@ -34,7 +34,7 @@ namespace CarsImgApi.Repository.Implementation
                     using (OracleCommand cmd = con.CreateCommand())
                     {
                         await con.OpenAsync();
-                        cmd.CommandText = @"INSERT INTO SNAPSHOTDB.IMAGENES_VEHICULOS 
+                        cmd.CommandText = @"INSERT INTO CONFITEC.IMAGENES_VEHICULOS 
                                             (COMPANIA,
                                              SUCURSAL,
                                              NUM_ORDEN,
