@@ -114,7 +114,7 @@ namespace CarsImgApi.Repository.Implementation
                 using (OracleCommand cmd = con.CreateCommand())
                 {
                     await con.OpenAsync();
-                    cmd.CommandText = @"SELECT COMPANIA,
+                    cmd.CommandText = @$"SELECT COMPANIA,
                                                SUCURSAL,
                                                NUM_ORDEN,
                                                IMG_LATERAL_DERECHO,
@@ -125,7 +125,8 @@ namespace CarsImgApi.Repository.Implementation
                                                IMG_ANEXO2,
                                                IMG_ANEXO3
                                             FROM CONFITEC.IMAGENES_VEHICULOS
-                                             ORDER BY NUM_ORDEN ASC";
+                                                WHERE USUARIO = '{user.ToUpper()}'
+                                             ORDER BY NUM_ORDEN DESC";
 
                     var reader = await cmd.ExecuteReaderAsync();
 
@@ -175,9 +176,19 @@ namespace CarsImgApi.Repository.Implementation
                     {
                         await con.OpenAsync();
 
-                        cmd.CommandText = $@"SELECT *
+                        cmd.CommandText = $@"SELECT COMPANIA,
+                                               SUCURSAL,
+                                               NUM_ORDEN,
+                                               IMG_LATERAL_DERECHO,
+                                               IMG_LATERAL_IZQUIERDO,
+                                               IMG_FRONTAL,
+                                               IMG_TRASERO,
+                                               IMG_ANEXO1,
+                                               IMG_ANEXO2,
+                                               IMG_ANEXO3
                                             FROM CONFITEC.IMAGENES_VEHICULOS
-                                          WHERE NUM_ORDEN = {num_order} ";
+                                          WHERE NUM_ORDEN = {num_order} 
+                                               AND USUARIO = '{user.ToUpper()}'";
 
                         var reader = await cmd.ExecuteReaderAsync();
 
@@ -229,7 +240,7 @@ namespace CarsImgApi.Repository.Implementation
                     {
                         await con.OpenAsync();
 
-                        cmd.CommandText = @"SELECT COMPANIA,
+                        cmd.CommandText = $@"SELECT COMPANIA,
                                                SUCURSAL,
                                                NUM_ORDEN,
                                                IMG_LATERAL_DERECHO,
@@ -241,6 +252,7 @@ namespace CarsImgApi.Repository.Implementation
                                                IMG_ANEXO3
                                                FROM CONFITEC.IMAGENES_VEHICULOS
                                                WHERE ROWNUM <= 4
+                                                  AND USUARIO = '{user.ToUpper()}'
                                             ORDER BY NUM_ORDEN ASC";
 
                         var reader = await cmd.ExecuteReaderAsync();
@@ -296,8 +308,9 @@ namespace CarsImgApi.Repository.Implementation
                     {
                         await con.OpenAsync();
 
-                        cmd.CommandText = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
-                                                FROM CONFITEC.IMAGENES_VEHICULOS";
+                        cmd.CommandText = $@"SELECT CEIL(COUNT(*) / 4) PAGINAS
+                                                FROM CONFITEC.IMAGENES_VEHICULOS
+                                            WHERE USUARIO = '{user.ToUpper()}'";
 
                         var reader = await cmd.ExecuteReaderAsync();
 

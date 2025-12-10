@@ -43,12 +43,12 @@ namespace CarsImgApi.services
 
             } catch (Exception)
             {
-                LoginModel model = new LoginModel
+               /* LoginModel model = new LoginModel
                 {
                     token = "Login Invalido. Compruebe Credenciales."
-                };
+                };*/
 
-                return model;
+                return null;
 
             }
 

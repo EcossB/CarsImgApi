@@ -1,3 +1,4 @@
+using CarsImgApi.Models.Domain;
 using CarsImgApi.Repository.Implementation;
 using CarsImgApi.Repository.Interface;
 using CarsImgApi.services;
@@ -51,10 +52,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+//esto solo se usa para build de produccion, localmente hay que comentarlo
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://10.0.0.52:81")
+             .AllowAnyHeader()
+             .AllowAnyMethod()
+             .AllowCredentials();
+
+    });
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline. descomentar esto cuando estemos probando en desarrollo.
+/*if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -69,7 +83,9 @@ app.UseCors(options => options.
                         AllowAnyMethod()
                         .AllowAnyHeader()
                         .SetIsOriginAllowed(origin => true)
-                        .AllowCredentials());
+                        .AllowCredentials());*/
+
+app.UseCors("AllowFrontend"); //descomentar para cuando se haga build pra produccion.
 
 app.UseHttpsRedirection();
 
