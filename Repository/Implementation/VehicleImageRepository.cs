@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Data;
+using System.Diagnostics;
 using CarsImgApi.Models.Domain;
 using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 using CarsImgApi.Repository.Interface;
@@ -43,7 +44,9 @@ namespace CarsImgApi.Repository.Implementation
                                              IMG_TRASERO,
                                              IMG_ANEXO1,
                                              IMG_ANEXO2,
-                                             IMG_ANEXO3) 
+                                             IMG_ANEXO3,
+                                             KILOMETROS,
+                                             PLACA) 
                                              VALUES
                                             (:COMPANIA, 
                                              :SUCURSAL, 
@@ -54,13 +57,15 @@ namespace CarsImgApi.Repository.Implementation
                                              :IMGTRAS, 
                                              :IMGANEXO1, 
                                              :IMGANEXO2, 
-                                             :IMGANEXO3)";
+                                             :IMGANEXO3,
+                                             :KILOMETROS,
+                                             :PLACA)";
 
                         var listImage = await _imageService.CreateImageAsync(vehicle);
 
                         cmd.Parameters.Add(":COMPANIA", OracleDbType.Varchar2).Value = vehicle.Compania;
                         cmd.Parameters.Add(":sucursal", OracleDbType.Varchar2).Value = vehicle.Sucursal;
-                        cmd.Parameters.Add(":SUCURSAL", OracleDbType.Int32).Value = vehicle.Orden_Numero;
+                        cmd.Parameters.Add(":NUM_ORDEN", OracleDbType.Int32).Value = vehicle.Orden_Numero;
                         cmd.Parameters.Add(":IMGDER", OracleDbType.Clob).Value = listImage[0];
                         cmd.Parameters.Add(":IMGIZQ", OracleDbType.Clob).Value = listImage[1];
                         cmd.Parameters.Add(":IMGFRONT", OracleDbType.Clob).Value = listImage[2];
@@ -68,6 +73,10 @@ namespace CarsImgApi.Repository.Implementation
                         cmd.Parameters.Add(":IMGANEXO1", OracleDbType.Clob).Value = listImage[4];
                         cmd.Parameters.Add(":IMGANEXO2", OracleDbType.Clob).Value = listImage[5];
                         cmd.Parameters.Add(":IMGANEXO3", OracleDbType.Clob).Value = listImage[6];
+                        cmd.Parameters.Add(":KILOMETROS", OracleDbType.Int32).Value = vehicle.Kilometros;
+                        cmd.Parameters.Add(":PLACA", OracleDbType.Varchar2).Value = vehicle.Placa;
+
+
 
                         await cmd.ExecuteNonQueryAsync();
 
@@ -83,6 +92,8 @@ namespace CarsImgApi.Repository.Implementation
                             Img_anexo1 = listImage[4],
                             Img_anexo2 = listImage[5],
                             Img_anexo3 = listImage[6],
+                            Kilometros = vehicle.Kilometros,
+                            Placa = vehicle.Placa
                         };
 
                         timer.Stop();
@@ -92,8 +103,9 @@ namespace CarsImgApi.Repository.Implementation
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message);
                 throw null;
             }
         }
@@ -114,6 +126,16 @@ namespace CarsImgApi.Repository.Implementation
                 using (OracleCommand cmd = con.CreateCommand())
                 {
                     await con.OpenAsync();
+                    
+                    // cmd.CommandText = "obtener_imagenes";
+                    
+                    //implementing stored procedure instead of plain sql in the code. this will bring more security
+                    // cmd.CommandType = CommandType.StoredProcedure; 
+                    // cmd.BindByName = true;
+                    // OracleParameter outParam = new OracleParameter("p_resultado", OracleDbType.RefCursor);
+                    // outParam.Direction = ParameterDirection.Output;
+                    // cmd.Parameters.Add(outParam);
+
                     cmd.CommandText = @"SELECT COMPANIA,
                                                SUCURSAL,
                                                NUM_ORDEN,
@@ -240,7 +262,7 @@ namespace CarsImgApi.Repository.Implementation
                                                IMG_ANEXO2,
                                                IMG_ANEXO3
                                                FROM SNAPSHOTDB.IMAGENES_VEHICULOS
-                                               WHERE ROWNUM <= 4
+                                               WHERE ROWNUM <= 6
                                             ORDER BY NUM_ORDEN ASC";
 
                         var reader = await cmd.ExecuteReaderAsync();
