@@ -36,7 +36,9 @@ namespace CarsImgApi.Controllers
                 Img_trasero = imgVehicle.Img_trasero,
                 Img_anexo1 = imgVehicle.Img_anexo1,
                 Img_anexo2 = imgVehicle.Img_anexo2,
-                Img_anexo3 = imgVehicle.Img_anexo3
+                Img_anexo3 = imgVehicle.Img_anexo3,
+                Kilometros = imgVehicle.Kilometros,
+                Placa = imgVehicle.Placa
             };
 
             var newVehicle = await _imageRepository.addImagesVehicle(vehicle, imgVehicle.Usuario);
@@ -70,7 +72,9 @@ namespace CarsImgApi.Controllers
                     Img_trasero = vehicle.Img_trasero,
                     Img_anexo1 = vehicle.Img_anexo1,
                     Img_anexo2 = vehicle.Img_anexo2,
-                    Img_anexo3 = vehicle.Img_anexo3
+                    Img_anexo3 = vehicle.Img_anexo3,
+                    Kilometros = vehicle.Kilometros,
+                    Placa = vehicle.Placa
                 });
             }
 
