@@ -105,7 +105,7 @@ namespace CarsImgApi.Repository.Implementation
                     using (OracleCommand cmd = con.CreateCommand())
                     {
                         await con.OpenAsync();
-                        cmd.CommandText = @"select 
+                        cmd.CommandText = $@"select 
                                         compania, 
                                         sucursal, 
                                         orden_numero, 
@@ -114,7 +114,8 @@ namespace CarsImgApi.Repository.Implementation
                                         marca, 
                                         modelo, 
                                         placa 
-                                        from CONFITEC.V_ORDENES_PARA_RECEPCION";
+                                        from CONFITEC.V_ORDENES_PARA_RECEPCION
+                                        WHERE RECEPTOR = upper('{user}') ";
                         var reader = await cmd.ExecuteReaderAsync();
 
                         while (await reader.ReadAsync())
