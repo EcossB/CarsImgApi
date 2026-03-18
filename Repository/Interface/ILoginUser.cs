@@ -5,8 +5,8 @@ namespace CarsImgApi.Repository.Interface
 {
     public interface ILoginUser
     {
-        public Task<LoginModel> login(UserSqlConnection user);
+        public Task<LoginModel> Login(UserSqlConnection user);
 
-        public MessageModel logOut(LogOutModel userName);
+        public MessageModel LogOut(LogOutModel userName);
     }
 }
