@@ -1,10 +1,8 @@
-﻿using CarsImgApi.Models.DTO;
-using CarsImgApi.Models.DTO.ImgVehicleDTOS;
-using CarsImgApi.Models.DTO.VehicleDTOS;
+﻿using CarsImgApi.Models.DTO.VehicleDTOS;
 using CarsImgApi.Repository.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace CarsImgApi.Controllers
 {
@@ -27,7 +25,7 @@ namespace CarsImgApi.Controllers
         [Route("orders/{user}")]
         public async Task<IActionResult> GetAllVehiclesData([FromRoute] string user)
         {
-            var vehicles = await _interfaceVehicles.getAllVehiclesData(user);
+            var vehicles = await _interfaceVehicles.GetAllVehiclesData(user);
 
             var VehicleList = new List<VehicleResponseDtos>();
 
@@ -53,7 +51,7 @@ namespace CarsImgApi.Controllers
         [Route("chasis/{requestChasis}/user{requestUser}")]
         public async Task<IActionResult> getVehicleByPlaca([FromRoute] string requestChasis, [FromRoute]string requestUser)
         {
-            var vehicle = await _interfaceVehicles.getVehicleByPlaca(requestChasis, requestUser);
+            var vehicle = await _interfaceVehicles.GetVehicleByPlaca(requestChasis, requestUser);
 
                 
             if (vehicle is not null){
@@ -73,36 +71,8 @@ namespace CarsImgApi.Controllers
                 return Ok(vehicleResponse);
             }
             
-            return BadRequest("The vehicle doesn't exists with the required chasis.");
+            return BadRequest(new {Message = "El Vehiculo No Existe Con Esa Placa."});
         }
-
-        /*
-        [HttpGet]
-        [Route(("allChasis/{user}"))]
-        public async Task<IActionResult> getAllChasis([FromRoute] UserRequestDto user)
-        {
-            var chasis = await _interfaceVehicles.getAllChasis(user.User);
-
-            if (chasis is not null)
-            {
-                return Ok(chasis);
-            }
-
-            return BadRequest("You Don't Have the permissions to retrieve Data.");
-        }
-
-        [HttpGet("SimilarsChasis")]
-        public async Task<IActionResult> getChasis(GetVehicleByChasisRequestDTO request)
-        {
-            var chasis = await _interfaceVehicles.getChasis(request.Chasis, request.User);
-
-            if(chasis is not null)
-            {
-                return Ok(chasis);
-            }
-
-            return BadRequest($"The Chasis {request.Chasis} doesn't exists");
-        }*/
 
     }
 }
