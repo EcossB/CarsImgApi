@@ -17,21 +17,32 @@ namespace CarsImgApi.services
 
         public AuthService(IConfiguration configuration)
         {
-            this._configuration = configuration;
+            _configuration = configuration;
         }
 
 
-        public async Task<LoginModel> login(UserSqlConnection user)
+        public async Task<LoginModel> Login(UserSqlConnection user)
         {
             try
             {
-                var conString = BaseService._poolSqlConnections.getConnectionString(user);
-                await using(OracleConnection con = new OracleConnection(conString))
+                var baseConnectionString = _configuration.GetConnectionString("OracleDbLogin");
+
+                // 2. Usas el constructor seguro
+                var builder = new OracleConnectionStringBuilder(baseConnectionString)
+                {
+                    // El builder se encarga de escapar cualquier carácter peligroso automáticamente
+                    UserID = user.userName,
+                    Password = user.password
+                };
+
+                // 3. Obtienes el string final sanitizado
+                string conStringSeguro = builder.ConnectionString;
+
+                await using(OracleConnection con = new OracleConnection(conStringSeguro))
                 {
                     await con.OpenAsync();
                     await con.CloseAsync();
                 }
-                BaseService._poolSqlConnections.add(user);
 
                 LoginModel model = new LoginModel
                 {
@@ -41,30 +52,27 @@ namespace CarsImgApi.services
                 
                 return model;
 
-            } catch (Exception)
+            } catch (OracleException ex)
             {
-               /* LoginModel model = new LoginModel
+                // ORA-01017 es el código de Oracle para "invalid username/password; logon denied"
+                if (ex.Number == 1017)
                 {
-                    token = "Login Invalido. Compruebe Credenciales."
-                };*/
+                    return null; // esto disparara un 401
+                }
 
-                return null;
+                throw;
 
             }
 
             
         }
 
-        public MessageModel logOut(LogOutModel userName)
+        public MessageModel LogOut(LogOutModel userName)
         {
-            var message = new MessageModel();
-            if (BaseService._poolSqlConnections.remove(userName))
+            var message = new MessageModel()
             {
-                message.message = "Log out succesfully";
-                return message;
-            }
-            else
-                message.message = "That user it's not log in, so it can't be log out";
+                message = "Sección Cerrada Con Exito!"
+            };
 
             return message;
         }
@@ -96,7 +104,7 @@ namespace CarsImgApi.services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],   
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(15),
+                expires: DateTime.Now.AddMinutes(55),
                 signingCredentials: creds);
         
             return new JwtSecurityTokenHandler().WriteToken(token);
