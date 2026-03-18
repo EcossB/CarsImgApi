@@ -1,4 +1,3 @@
-using CarsImgApi.Models.Domain;
 using CarsImgApi.Repository.Implementation;
 using CarsImgApi.Repository.Interface;
 using CarsImgApi.services;
@@ -8,10 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
-using System;
 using System.Text;
-
-
 
 /*Agregando middleWare para atrapar las excepciones globales y guardarlas con Serilog*/
 Log.Logger = new LoggerConfiguration()
