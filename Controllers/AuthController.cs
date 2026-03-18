@@ -22,7 +22,7 @@ namespace CarsImgApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(UserSqlConnection user)
         {
-            var token = await _authService.login(user);
+            var token = await _authService.Login(user);
             
             if (token is not null)
             {
@@ -31,6 +31,7 @@ namespace CarsImgApi.Controllers
                     UsuarioOracle = token.userName,
                     Token = token.token
                 };
+
                 return Ok(loginResponse);
             }
             
@@ -41,7 +42,7 @@ namespace CarsImgApi.Controllers
         [HttpPost("logout")]
         public ActionResult<IActionResult> LogOut(LogOutModel userName)
         {
-            var message = _authService.logOut(userName);
+            var message = _authService.LogOut(userName);
             return Ok(message);
         }
 
