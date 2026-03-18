@@ -77,6 +77,8 @@ namespace CarsImgApi.Repository.Implementation
         public async Task<IEnumerable<ImgVehicles>> GetAllImagesVehicles(string user)
         {
 
+            var imageList = new List<ImgVehicles>();
+
             using (OracleConnection con = new OracleConnection(_connectionString))
             {
 
@@ -94,7 +96,15 @@ namespace CarsImgApi.Repository.Implementation
                                             WHERE USUARIO = :user
                                         ORDER BY NUM_ORDEN DESC";
 
-                return await con.QueryAsync<ImgVehicles>(commandText,new {user = user});
+                var vehicleList = await con.QueryAsync<ImgVehicles>(commandText, new { user = user });
+
+                foreach (var vehicle in vehicleList)
+                {
+                    imageList.Add(await _imageService.GetImageAsync(vehicle));
+                }
+
+                return imageList;
+
             }
             
         }
@@ -109,8 +119,10 @@ namespace CarsImgApi.Repository.Implementation
                                                     FROM CONFITEC.IMAGENES_VEHICULOS
                                                 WHERE NUM_ORDEN = :num_order";
 
-                    return await con.QuerySingleAsync<ImgVehicles>(commandText, new { num_order = num_order });
-                }
+                    var vehicle = await con.QuerySingleAsync<ImgVehicles>(commandText, new { num_order = num_order });
+                    await _imageService.GetImageAsync(vehicle);
+                    return vehicle; 
+            }
         }
 
 
