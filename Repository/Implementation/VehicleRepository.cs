@@ -27,18 +27,18 @@ namespace CarsImgApi.Repository.Implementation
                     const string sql = @"select 
                                         compania, 
                                         sucursal, 
-                                        orden_numero, 
+                                        NUM_ORDEN, 
                                         fecha_orden,
                                         nombre_cliente,
                                         marca, 
                                         modelo, 
                                         placa 
-                                    from CONFITEC.V_ORDENES_PARA_RECEPCION
-                                    WHERE RECEPTOR = upper(:user) ";
+                                    from snapshotdb.V_ORDENES_PARA_RECEPCION
+                                    WHERE RECEPTOR = upper(:p_user) ";
 
                 // Dapper abre la conexión, pasa el parámetro, ejecuta y mapea todo automáticamente
                 // basándose en el nombre de las columnas (por eso los AS si hay diferencias de mayúsculas/minúsculas).
-                var vehicles = await con.QueryAsync<Vehicle>(sql, new { user = user });
+                var vehicles = await con.QueryAsync<Vehicle>(sql, new { p_user = user });
 
                 return vehicles;
             }
@@ -53,11 +53,11 @@ namespace CarsImgApi.Repository.Implementation
             {
                     
                 const string sql = @"select * 
-                                    from CONFITEC.v_ordenes_para_recepcion
-                                    where placa = :placa ";
+                                    from snapshotdb.v_ordenes_para_recepcion
+                                    where placa = :p_placa ";
 
                 /*Utilizamos Dapper para hacer el mapeo de parametros y el retorno de la entidad de manera limpiar y eficiente. (sin usar ADO puro)*/
-                return await con.QuerySingleAsync<Vehicle>(sql, new { placa = placa });
+                return await con.QuerySingleAsync<Vehicle>(sql, new { p_placa = placa });
 
             }
         } 
