@@ -1,64 +1,77 @@
-﻿using CarsImgApi.Entity;
-using CarsImgApi.Interface;
-using CarsImgApi.Models;
+﻿using CarsImgApi.Models.DTO.VehicleDTOS;
+using CarsImgApi.Repository.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace CarsImgApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("v1/[controller]")]
     [ApiController]
 
     [Authorize]
     public class VehicleController : ControllerBase
     {
 
-        private readonly IDatosVehiculos _interfaceVehicles;
+        private readonly IDataVehicle _interfaceVehicles;
 
 
-        public VehicleController(IDatosVehiculos interfaceVehicles)
+        public VehicleController(IDataVehicle interfaceVehicles)
         {
             _interfaceVehicles = interfaceVehicles;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ModeloVehiculoRecepcion>>> GetAllVehiclesData(string user)
+        [Route("orders/{user}")]
+        public async Task<IActionResult> GetAllVehiclesData([FromRoute] string user)
         {
-            var vehicles = _interfaceVehicles.getAllVehiclesData(user);
-            return Ok(vehicles);
-        }
+            var vehicles = await _interfaceVehicles.GetAllVehiclesData(user);
 
-        [HttpGet("{chasis}")]
+            var VehicleList = new List<VehicleResponseDtos>();
 
-        public async Task<ActionResult<ModeloVehiculoRecepcion>> getVehicleByChasis(string placa, string user)
-        {
-            var vehicle = _interfaceVehicles.getVehicleByPlaca(placa,  user);
-            if(vehicle.Placa != "")
+            foreach (var vehicle in vehicles) 
             {
-                return Ok(vehicle);
-            }
-            return BadRequest("No existe vehiculo con la placa introducida.");
-        }
-
-        [HttpGet("allChasis")]
-        public async Task<ActionResult<List<ChasisModel>>> getAllChasis(string user)
-        {
-            var chasis = _interfaceVehicles.getAllChasis( user);
-            return Ok(chasis);
-        }
-
-        [HttpGet("single/{chasisString}")]
-        public async Task<ActionResult<List<ChasisModel>>> getChasis(string chasisString, string user)
-        {
-            var chasis = _interfaceVehicles.getChasis(chasisString, user);
-
-            if(chasis.Count !> 0)
-            {
-                return Ok(chasis);
+                VehicleList.Add(new VehicleResponseDtos()
+                {
+                    Compania = vehicle.Compania,
+                    Num_orden = vehicle.Num_orden,
+                    Sucursal = vehicle.Sucursal,
+                    Nombre = vehicle.Nombre_cliente,
+                    Marca = vehicle.Marca,
+                    Modelo = vehicle.Modelo,
+                    Placa = vehicle.Placa,
+                    Fecha_orden = vehicle.Fecha_orden
+                });
             }
 
-            return Ok(chasis);
+            return Ok(VehicleList);
+        }
+
+        [HttpGet]
+        [Route("chasis/{requestChasis}/user{requestUser}")]
+        public async Task<IActionResult> getVehicleByPlaca([FromRoute] string requestChasis, [FromRoute]string requestUser)
+        {
+            var vehicle = await _interfaceVehicles.GetVehicleByPlaca(requestChasis, requestUser);
+
+                
+            if (vehicle is not null){
+
+                var vehicleResponse = new VehicleResponseDtos()
+                {
+                    Compania = vehicle.Compania,
+                    Num_orden = vehicle.Num_orden,    
+                    Sucursal = vehicle.Sucursal,
+                    Nombre = vehicle.Nombre_cliente,
+                    Marca = vehicle.Marca,
+                    Modelo = vehicle.Modelo,
+                    Placa = vehicle.Placa,
+                    Fecha_orden = vehicle.Fecha_orden
+                };
+
+                return Ok(vehicleResponse);
+            }
+            
+            return BadRequest(new {Message = "El Vehiculo No Existe Con Esa Placa."});
         }
 
     }

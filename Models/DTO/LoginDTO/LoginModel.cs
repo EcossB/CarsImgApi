@@ -1,4 +1,4 @@
-﻿namespace CarsImgApi.Models
+﻿namespace CarsImgApi.Models.DTO.LoginDTO
 {
     public class LoginModel
     {

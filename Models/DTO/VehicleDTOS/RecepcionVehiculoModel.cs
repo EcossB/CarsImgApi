@@ -1,4 +1,4 @@
-﻿namespace CarsImgApi.Models
+﻿namespace CarsImgApi.Models.DTO.VehicleDTOS
 {
     public class RecepcionVehiculoModel
     {

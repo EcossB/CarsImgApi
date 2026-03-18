@@ -1,6 +1,6 @@
-﻿using CarsImgApi.Entity;
-using CarsImgApi.Interface;
-using CarsImgApi.Models;
+﻿using CarsImgApi.Models;
+using CarsImgApi.Models.DTO.LoginDTO;
+using CarsImgApi.Repository.Interface;
 using Microsoft.IdentityModel.Tokens;
 using Oracle.ManagedDataAccess.Client;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,77 +10,81 @@ using System.Text;
 
 namespace CarsImgApi.services
 {
-    public class AuthService : BaseService, ILoginUser
+    public class AuthService : ILoginUser
     {
 
         private readonly IConfiguration _configuration;
 
         public AuthService(IConfiguration configuration)
         {
-            this._configuration = configuration;
+            _configuration = configuration;
         }
 
 
-        public LoginModel login(UserSqlConnection user)
+        public async Task<LoginModel> Login(UserSqlConnection user)
         {
             try
             {
+                var baseConnectionString = _configuration.GetConnectionString("OracleDbLogin");
 
-                var conString = BaseService._poolSqlConnections.getConnectionString(user);
-                using(OracleConnection con = new OracleConnection(conString))
+                // 2. Usas el constructor seguro
+                var builder = new OracleConnectionStringBuilder(baseConnectionString)
                 {
-                    con.Open();
+                    // El builder se encarga de escapar cualquier carácter peligroso automáticamente
+                    UserID = user.userName,
+                    Password = user.password
+                };
+
+                // 3. Obtienes el string final sanitizado
+                string conStringSeguro = builder.ConnectionString;
+
+                await using(OracleConnection con = new OracleConnection(conStringSeguro))
+                {
+                    await con.OpenAsync();
+                    await con.CloseAsync();
                 }
-                BaseService._poolSqlConnections.add(user);
 
                 LoginModel model = new LoginModel
                 {
                     userName = user.userName,
-                    password = user.password,
-                    token = generateToken(user)
+                    token = GenerateToken(user)
                 };
-
+                
                 return model;
 
-            } catch (Exception ex)
+            } catch (OracleException ex)
             {
-                LoginModel model = new LoginModel
+                // ORA-01017 es el código de Oracle para "invalid username/password; logon denied"
+                if (ex.Number == 1017)
                 {
-                    userName = "",
-                    password = "",
-                    token = "Login Invalido. Compruebe Credenciales."
-                };
+                    return null; // esto disparara un 401
+                }
 
-                return model;
+                throw;
 
             }
 
             
         }
 
-        public MessageModel logOut(LogOutModel userName)
+        public MessageModel LogOut(LogOutModel userName)
         {
-            var message = new MessageModel();
-            if (BaseService._poolSqlConnections.remove(userName))
+            var message = new MessageModel()
             {
-                message.message = "Log out succesfully";
-                return message;
-            }
-            else
-                message.message = "That user it's not log in, so it can't be log out";
+                message = "Sección Cerrada Con Exito!"
+            };
 
             return message;
         }
 
-        public string generateToken(UserSqlConnection user)
+        public string GenerateToken(UserSqlConnection user)
         {
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.userName)
             };
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
-                _configuration.GetSection("AppSettings:Token").Value));
+            /*var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
 
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
@@ -92,9 +96,21 @@ namespace CarsImgApi.services
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return jwt;
+            return jwt;*/
+            
+            var key =  new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); // creando las credenciales del token
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],   
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(55),
+                signingCredentials: creds);
+        
+            return new JwtSecurityTokenHandler().WriteToken(token);
 
         }
+
 
     }
 }

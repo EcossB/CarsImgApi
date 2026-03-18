@@ -1,6 +1,6 @@
 ﻿using Oracle.ManagedDataAccess.Client;
 
-namespace CarsImgApi.Entity
+namespace CarsImgApi.Models.DTO.LoginDTO
 {
     public class UserSqlConnection
     {
