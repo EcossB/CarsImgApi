@@ -11,7 +11,7 @@ using Dapper;
 
 namespace CarsImgApi.Repository.Implementation
 {
-    public class VehicleImageRepository : BaseService, IImageVehicle
+    public class VehicleImageRepository : IImageVehicle
     {
 
         private readonly IConfiguration _configuration;

@@ -10,7 +10,7 @@ using System.Text;
 
 namespace CarsImgApi.services
 {
-    public class AuthService : BaseService, ILoginUser
+    public class AuthService : ILoginUser
     {
 
         private readonly IConfiguration _configuration;

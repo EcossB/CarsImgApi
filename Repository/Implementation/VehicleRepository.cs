@@ -6,7 +6,7 @@ using Dapper;
 
 namespace CarsImgApi.Repository.Implementation
 {
-    public class VehicleRepository : PoolSqlConnections, IDataVehicle
+    public class VehicleRepository : IDataVehicle
     {
 
         private readonly IConfiguration _configuration;
@@ -47,20 +47,15 @@ namespace CarsImgApi.Repository.Implementation
 
         public async Task<Vehicle> GetVehicleByPlaca(string placa, string user)
         {
-
-            /*Obtenemos la conexion a la base de datos*/
-            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
                 
             /*Utilizamos el using para abrir y cerrar los recursos y dejar la memoria libre cuando termine de correr.*/
-            using (OracleConnection con = new OracleConnection(stringConnection))
+            using (OracleConnection con = new OracleConnection(_connectionString))
             {
                     
-
                 const string sql = @"select * 
                                     from CONFITEC.v_ordenes_para_recepcion
                                     where placa = :placa ";
 
-                    
                 /*Utilizamos Dapper para hacer el mapeo de parametros y el retorno de la entidad de manera limpiar y eficiente. (sin usar ADO puro)*/
                 return await con.QuerySingleAsync<Vehicle>(sql, new { placa = placa });
 
