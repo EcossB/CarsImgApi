@@ -29,7 +29,7 @@ namespace CarsImgApi.Controllers
             {
                 Compania = imgVehicle.Compania,
                 Sucursal = imgVehicle.Sucursal,
-                Orden_Numero = imgVehicle.Orden_Numero,
+                Num_orden = imgVehicle.Num_orden,
                 Img_lateral_derecho = imgVehicle.Img_lateral_derecho,
                 Img_lateral_izquierdo = imgVehicle.Img_lateral_izquierdo,
                 Img_frontal = imgVehicle.Img_frontal,
@@ -38,7 +38,8 @@ namespace CarsImgApi.Controllers
                 Img_anexo2 = imgVehicle.Img_anexo2,
                 Img_anexo3 = imgVehicle.Img_anexo3,
                 Kilometros = imgVehicle.Kilometros,
-                Placa = imgVehicle.Placa
+                Placa = imgVehicle.Placa,
+                Usuario = imgVehicle.Usuario
             };
 
             var newVehicle = await _imageRepository.AddImagesVehicle(vehicle, imgVehicle.Usuario);
@@ -65,7 +66,7 @@ namespace CarsImgApi.Controllers
                 {
                     Compania = vehicle.Compania,
                     Sucursal = vehicle.Sucursal,
-                    Orden_Numero = vehicle.Orden_Numero,
+                    Num_orden = vehicle.Num_orden,
                     Img_lateral_derecho = vehicle.Img_lateral_derecho,
                     Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
                     Img_frontal = vehicle.Img_frontal,
@@ -74,7 +75,8 @@ namespace CarsImgApi.Controllers
                     Img_anexo2 = vehicle.Img_anexo2,
                     Img_anexo3 = vehicle.Img_anexo3,
                     Kilometros = vehicle.Kilometros,
-                    Placa = vehicle.Placa
+                    Placa = vehicle.Placa,
+                    Usuario = vehicle.Usuario
                 });
             }
 
@@ -93,7 +95,7 @@ namespace CarsImgApi.Controllers
                 {
                     Compania = vehicle.Compania,
                     Sucursal = vehicle.Sucursal,
-                    Orden_Numero = vehicle.Orden_Numero,
+                    Num_orden = vehicle.Num_orden,
                     Img_lateral_derecho = vehicle.Img_lateral_derecho,
                     Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
                     Img_frontal = vehicle.Img_frontal,
@@ -124,7 +126,7 @@ namespace CarsImgApi.Controllers
                 {
                     Compania = vehicle.Compania,
                     Sucursal = vehicle.Sucursal,
-                    Orden_Numero = vehicle.Orden_Numero,
+                    Num_orden = vehicle.Num_orden,
                     Img_lateral_derecho = vehicle.Img_lateral_derecho,
                     Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
                     Img_frontal = vehicle.Img_frontal,
@@ -159,7 +161,7 @@ namespace CarsImgApi.Controllers
                 {
                     Compania = vehicle.Compania,
                     Sucursal = vehicle.Sucursal,
-                    Orden_Numero = vehicle.Orden_Numero,
+                    Num_orden = vehicle.Num_orden,
                     Img_lateral_derecho = vehicle.Img_lateral_derecho,
                     Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
                     Img_frontal = vehicle.Img_frontal,
