@@ -21,7 +21,7 @@ namespace CarsImgApi.Controllers
 
         [HttpPost]
         [Route("addImage")]
-        public async Task<IActionResult> saveImgData(ImgVehicleRequestDTO imgVehicle)
+        public async Task<IActionResult> SaveImgData(ImgVehicleRequestDTO imgVehicle)
         {
             //dto to domain model 
 
@@ -41,11 +41,11 @@ namespace CarsImgApi.Controllers
                 Placa = imgVehicle.Placa
             };
 
-            var newVehicle = await _imageRepository.addImagesVehicle(vehicle, imgVehicle.Usuario);
+            var newVehicle = await _imageRepository.AddImagesVehicle(vehicle, imgVehicle.Usuario);
 
             if (newVehicle is not null) 
             {
-                return Ok("New Vehicle images Save!");
+                return Ok(new { Message = "New Vehicle images Save!" });
             }
 
             return BadRequest();
@@ -53,9 +53,9 @@ namespace CarsImgApi.Controllers
 
         [HttpGet]
         [Route("GetAll/{user}")]
-        public async Task<IActionResult> getAllVehiclesImg([FromRoute] string user)
+        public async Task<IActionResult> GetAllVehiclesImg([FromRoute] string user)
         {
-            var vehicleList = await _imageRepository.getAllImagesVehicles(user);
+            var vehicleList = await _imageRepository.GetAllImagesVehicles(user);
 
             var response = new List<ImgVehicleResponseDTO>();
 
@@ -82,10 +82,10 @@ namespace CarsImgApi.Controllers
         }
 
         [HttpGet]
-        [Route("getByNumOrder/{num_order}/user{user}")]
-        public async Task<IActionResult> getImgVehicleByNumOrder([FromRoute]int num_order, [FromRoute] string user)
+        [Route("getByNumOrder/{num_order}")]
+        public async Task<IActionResult> GetImgVehicleByNumOrder([FromRoute]int num_order)
         {
-            var vehicle = await _imageRepository.getImageVehicle(num_order, user);
+            var vehicle = await _imageRepository.GetImageVehicle(num_order);
 
             if(vehicle is not null)
             {
@@ -105,16 +105,16 @@ namespace CarsImgApi.Controllers
 
                 return Ok(reponse);
             }
-            return BadRequest("No existe ese numero de orden.");
+            return BadRequest(new { Message = "No existe ese numero de orden." });
             
         }
 
         [HttpGet]
         [Route("pagination/user{user}/page{page}/limit{limit}")]
-        public async Task<ActionResult<ImgVehiclePaginationDTO>> imgPagination(string user, int page, int limit)
+        public async Task<ActionResult<ImgVehiclePaginationDTO>> ImgPagination(string user, int page, int limit)
         {
-            var vehicleList = await _imageRepository.paginateImages(user, page, limit);
-            var totalPages = await _imageRepository.numberPages(user);
+            var vehicleList = await _imageRepository.PaginateImages(user, page, limit);
+            var totalPages = await _imageRepository.NumberPages(user);
 
             var imageVehicleList = new List<ImgVehicleResponseDTO>();
 
@@ -147,9 +147,9 @@ namespace CarsImgApi.Controllers
 
         [HttpGet]
         [Route("get4first/user{user}")]
-        public async Task<IActionResult> getFirst4Image(string user)
+        public async Task<IActionResult> GetFirst4Image(string user)
         {
-            var vehicleList = await _imageRepository.get4FirstImages(user);
+            var vehicleList = await _imageRepository.Get4FirstImages(user);
 
             var response = new List<ImgVehicleResponseDTO>();
 
