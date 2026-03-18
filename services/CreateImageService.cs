@@ -7,113 +7,86 @@ namespace CarsImgApi.services
 {
     public class CreateImageService : ICreateImage
     {
+        /*Route disk where i save the images.*/
+        private readonly string _diskRoute;
+        private readonly IConfiguration _configuration;
+        public CreateImageService(IConfiguration configuration  )
+        {
+            _configuration = configuration;
+            _diskRoute = _configuration.GetValue<string>("DiskRoute") ?? throw new ArgumentNullException("DiskRoute configuration is missing.");
+        }
 
         public async Task<List<string>> CreateImageAsync(ImgVehicles vehicleImages)
         {
 
-            /*Route disk where i save the images.*/
-            string diskRoute = $"e:\\imagenes\\";
-            
-
-            /*
-             Image list will containt all the image base64 string send it by the webcam
-             */
-
-            var ListBase64Strings = new List<string>
+            var imagesToProcces = new Dictionary<string, string>
             {
-                vehicleImages.Img_lateral_derecho,
-                vehicleImages.Img_lateral_izquierdo,
-                vehicleImages.Img_frontal,
-                vehicleImages.Img_trasero,
-                vehicleImages.Img_anexo1,
-                vehicleImages.Img_anexo2,
-                vehicleImages.Img_anexo3
-            };
-
-            /*
-             imageSidesList is a list that contains the differents side of the image. It's purporse its to create the image path dinamically
-             */
-            var imageSidesList = new List<string>
-            {
-                "IMAGEN_DERECHA",
-                "IMAGEN_IZQUIERDA",
-                "IMAGEN_FRONTAL",
-                "IMAGEN_TRASERA",
-                "IMAGEN_ANEXO1",
-                "IMAGEN_ANEXO2",
-                "IMAGEN_ANEXO3"
+                {"IMAGEN_DERECHA", vehicleImages.Img_lateral_derecho},
+                {"IMAGEN_IZQUIERDA", vehicleImages.Img_lateral_izquierdo},
+                {"IMAGEN_FRONTAL", vehicleImages.Img_frontal},
+                {"IMAGEN_TRASERA", vehicleImages.Img_trasero},
+                {"IMAGEN_ANEXO1", vehicleImages.Img_anexo1},
+                {"IMAGEN_ANEXO2", vehicleImages.Img_anexo2},
+                {"IMAGEN_ANEXO3", vehicleImages.Img_anexo3}
             };
 
             /*this list will contain all the path of the images. these paths are the path that we are going to insert in the database*/
-            var pathImageList = new List<string>();
-            int iterator = 0;
+            var savedPath = new List<string>();
 
-            foreach (var img in ListBase64Strings)
+            foreach (var img in imagesToProcces.Where(x => !string.IsNullOrEmpty(x.Value)))
             {
-                //first converting the base64 string to a byte[]
-                var bytesImage = Convert.FromBase64String(img.Remove(0, 23));
-                //then i create the image dinamically
-                //await File.WriteAllBytesAsync($"c:\\ebatista\\ejemploImagen\\{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg", bytesImage);
-                //and at the end i add the new image path created. 
-                //pathImageList.Add($"c:\\ebatista\\ejemploImagen\\{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg");
+
+                // Limpieza segura del prefijo Base64 (data:image/jpeg;base64,...)
+                var base64Data = img.Value.Split(',')[1]; // Split the string to get the base64 part
+                var bytesImage = Convert.FromBase64String(base64Data);
+
+                string imageName = $"{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{img.Key}.jpg";
+                string fullPath = Path.Combine(_diskRoute, imageName);
+
 
                 //Se esta utilzando el disco E para que guarde las imagenes.
-                await File.WriteAllBytesAsync($"{diskRoute}{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg", bytesImage);
-                pathImageList.Add($"{diskRoute}{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{imageSidesList[iterator]}.jpg");
+                await File.WriteAllBytesAsync(fullPath,bytesImage);
 
-                iterator = iterator + 1;
+                savedPath.Add(fullPath); //adding the path to the list.
+
             }
             
-            return pathImageList; //returning the list. 
+            return savedPath; //returning the list. 
         }
 
         public async Task<ImgVehicles> GetImageAsync(ImgVehicles vehicleImages)
         {
            
-            //storing the path retreived from the database.
-            var listPathImages = new List<string>
-            {
-                vehicleImages.Img_lateral_derecho,
-                vehicleImages.Img_lateral_izquierdo,
-                vehicleImages.Img_frontal,
-                vehicleImages.Img_trasero,
-                vehicleImages.Img_anexo1,
-                vehicleImages.Img_anexo2,
-                vehicleImages.Img_anexo3
-            };
-
-            //getting the bytes of the images and adding to a new list of type bytes.
-            var listBynaryFile = new List<byte[]>();
-
-            foreach(var path in listPathImages)
-            {
-               listBynaryFile.Add(await File.ReadAllBytesAsync(path));
-            }
-
-            //list to store the base 64 string 
-            var listBase64String = new List<string>();  
-
-            foreach (var bytes in listBynaryFile)
-            {
-                listBase64String.Add(Convert.ToBase64String(bytes));
-            }
 
             var vehicle = new ImgVehicles
             {
                 Compania = vehicleImages.Compania,
                 Sucursal = vehicleImages.Sucursal,
                 Orden_Numero = vehicleImages.Orden_Numero,
-                Img_lateral_derecho = listBase64String[0],
-                Img_lateral_izquierdo = listBase64String[1],
-                Img_frontal = listBase64String[2],
-                Img_trasero = listBase64String[3],
-                Img_anexo1 = listBase64String[4],
-                Img_anexo2  = listBase64String[5],
-                Img_anexo3 = listBase64String[6]
+                Img_lateral_derecho = await ReadAsbase64(vehicleImages.Img_lateral_derecho),
+                Img_lateral_izquierdo = await ReadAsbase64(vehicleImages.Img_lateral_izquierdo),
+                Img_frontal = await ReadAsbase64(vehicleImages.Img_frontal),
+                Img_trasero = await ReadAsbase64(vehicleImages.Img_trasero),
+                Img_anexo1 = await ReadAsbase64(vehicleImages.Img_anexo1),
+                Img_anexo2  = await ReadAsbase64(vehicleImages.Img_anexo2),
+                Img_anexo3 = await ReadAsbase64(vehicleImages.Img_anexo3)
             };
-
             
             return vehicle;
+        }
+
+        public async Task<string> ReadAsbase64(string path)
+        {
+
+            
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                throw new FileNotFoundException($"The file at path {path} was not found.");
+            }
+
+            byte[] bytes = await File.ReadAllBytesAsync(path);
+            return Convert.ToBase64String(bytes);
+
         }
     }
 }
