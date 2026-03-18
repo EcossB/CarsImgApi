@@ -10,9 +10,11 @@ namespace CarsImgApi.services
         /*Route disk where i save the images.*/
         private readonly string _diskRoute;
         private readonly IConfiguration _configuration;
-        public CreateImageService(IConfiguration configuration  )
+        private readonly IWebHostEnvironment _env;
+        public CreateImageService(IConfiguration configuration, IWebHostEnvironment env)
         {
             _configuration = configuration;
+            _env = env;
             _diskRoute = _configuration.GetValue<string>("DiskRoute") ?? throw new ArgumentNullException("DiskRoute configuration is missing.");
         }
 
@@ -39,9 +41,16 @@ namespace CarsImgApi.services
                 // Limpieza segura del prefijo Base64 (data:image/jpeg;base64,...)
                 var base64Data = img.Value.Split(',')[1]; // Split the string to get the base64 part
                 var bytesImage = Convert.FromBase64String(base64Data);
+                
+                var rutaImagenes = Path.Combine(_env.WebRootPath ?? _env.ContentRootPath, _diskRoute);
+                
+                if (!Directory.Exists(rutaImagenes))
+                {
+                    Directory.CreateDirectory(rutaImagenes);
+                }
 
-                string imageName = $"{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Orden_Numero}_{img.Key}.jpg";
-                string fullPath = Path.Combine(_diskRoute, imageName);
+                string imageName = $"{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Num_orden}_{img.Key}.jpg";
+                string fullPath = Path.Combine(rutaImagenes, imageName);
 
 
                 //Se esta utilzando el disco E para que guarde las imagenes.
@@ -62,7 +71,7 @@ namespace CarsImgApi.services
             {
                 Compania = vehicleImages.Compania,
                 Sucursal = vehicleImages.Sucursal,
-                Orden_Numero = vehicleImages.Orden_Numero,
+                Num_orden = vehicleImages.Num_orden,
                 Img_lateral_derecho = await ReadAsbase64(vehicleImages.Img_lateral_derecho),
                 Img_lateral_izquierdo = await ReadAsbase64(vehicleImages.Img_lateral_izquierdo),
                 Img_frontal = await ReadAsbase64(vehicleImages.Img_frontal),
