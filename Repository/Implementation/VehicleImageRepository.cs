@@ -31,7 +31,7 @@ namespace CarsImgApi.Repository.Implementation
             using (OracleConnection con = new OracleConnection(_connectionString))
             {
                    
-                const string CommandText = @"INSERT INTO CONFITEC.IMAGENES_VEHICULOS 
+                const string CommandText = @"INSERT INTO snapshotdb.IMAGENES_VEHICULOS 
                                         (COMPANIA,
                                             SUCURSAL,
                                             NUM_ORDEN,
@@ -43,20 +43,22 @@ namespace CarsImgApi.Repository.Implementation
                                             IMG_ANEXO2,
                                             IMG_ANEXO3,
                                             KILOMETROS,
-                                            PLACA) 
+                                            PLACA,
+                                            USUARIO) 
                                             VALUES
                                         (:COMPANIA, 
                                             :SUCURSAL, 
                                             :NUM_ORDEN, 
-                                            :IMGDER, 
-                                            :IMGIZQ, 
-                                            :IMGFRONT, 
-                                            :IMGTRAS, 
-                                            :IMGANEXO1, 
-                                            :IMGANEXO2, 
-                                            :IMGANEXO3,
+                                            :Img_lateral_derecho, 
+                                            :Img_lateral_izquierdo, 
+                                            :Img_frontal, 
+                                            :Img_trasero, 
+                                            :Img_anexo1, 
+                                            :Img_anexo2, 
+                                            :Img_anexo3,
                                             :KILOMETROS,
-                                            :PLACA)";
+                                            :PLACA,
+                                            :USUARIO)";
 
                 var listImage = await _imageService.CreateImageAsync(vehicle);
                 vehicle.Img_lateral_derecho = listImage[0];
@@ -66,6 +68,7 @@ namespace CarsImgApi.Repository.Implementation
                 vehicle.Img_anexo1 = listImage[4];
                 vehicle.Img_anexo2 = listImage[5];
                 vehicle.Img_anexo3 = listImage[6];
+                
 
                 await con.ExecuteAsync(CommandText, vehicle);
             }
@@ -82,7 +85,7 @@ namespace CarsImgApi.Repository.Implementation
             using (OracleConnection con = new OracleConnection(_connectionString))
             {
 
-                const string commandText = @$"SELECT COMPANIA,
+                const string commandText = @"SELECT COMPANIA,
                                             SUCURSAL,
                                             NUM_ORDEN,
                                             IMG_LATERAL_DERECHO,
@@ -92,12 +95,12 @@ namespace CarsImgApi.Repository.Implementation
                                             IMG_ANEXO1,
                                             IMG_ANEXO2,
                                             IMG_ANEXO3
-                                        FROM CONFITEC.IMAGENES_VEHICULOS
-                                            WHERE USUARIO = :user
+                                        FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                            WHERE USUARIO = upper(:p_user)
                                         ORDER BY NUM_ORDEN DESC";
 
-                var vehicleList = await con.QueryAsync<ImgVehicles>(commandText, new { user = user });
-
+                var vehicleList = await con.QueryAsync<ImgVehicles>(commandText, new { p_user = user });
+    
                 foreach (var vehicle in vehicleList)
                 {
                     imageList.Add(await _imageService.GetImageAsync(vehicle));
@@ -116,10 +119,10 @@ namespace CarsImgApi.Repository.Implementation
                 {
 
                     const string commandText = @"SELECT *
-                                                    FROM CONFITEC.IMAGENES_VEHICULOS
-                                                WHERE NUM_ORDEN = :num_order";
+                                                    FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                                WHERE NUM_ORDEN = :pnum_order";
 
-                    var vehicle = await con.QuerySingleAsync<ImgVehicles>(commandText, new { num_order = num_order });
+                    var vehicle = await con.QuerySingleAsync<ImgVehicles>(commandText, new { pnum_order = num_order });
                     await _imageService.GetImageAsync(vehicle);
                     return vehicle; 
             }
@@ -141,11 +144,12 @@ namespace CarsImgApi.Repository.Implementation
                                         IMG_ANEXO1,
                                         IMG_ANEXO2,
                                         IMG_ANEXO3
-                                        FROM CONFITEC.IMAGENES_VEHICULOS
+                                        FROM SNAPSHOTDB.IMAGENES_VEHICULOS
                                         WHERE ROWNUM <= 4
+                                            and usuario = :p_user
                                     ORDER BY NUM_ORDEN ASC";
 
-                var imgVehicle = await con.QuerySingleAsync(commandText, new { user = user });
+                var imgVehicle = await con.QuerySingleAsync(commandText, new { p_user = user });
                 imgVehicle = await _imageService.GetImageAsync(imgVehicle);
 
                 return imgVehicle;
@@ -164,11 +168,11 @@ namespace CarsImgApi.Repository.Implementation
             using (OracleConnection con = new OracleConnection(_connectionString))
             {
                     
-                const string commandText = $@"SELECT CEIL(COUNT(*) / 4) PAGINAS
-                                        FROM CONFITEC.IMAGENES_VEHICULOS
-                                    WHERE USUARIO = :user";
+                const string commandText = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
+                                        FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                    WHERE USUARIO = upper(:p_user)";
 
-                return await con.QuerySingleAsync<int>(commandText, new { user = user });
+                return await con.QuerySingleAsync<int>(commandText, new { p_user = user });
                                           
             }    
         }
