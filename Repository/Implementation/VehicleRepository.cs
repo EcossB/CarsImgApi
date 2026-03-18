@@ -1,17 +1,8 @@
 ﻿using Oracle.ManagedDataAccess.Client;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Drawing;
-using System.Numerics;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using CarsImgApi.services;
 using CarsImgApi.Repository.Interface;
-using CarsImgApi.Models.DTO.VehicleDTOS;
-using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 using CarsImgApi.Models.Domain;
+using Dapper;
 
 namespace CarsImgApi.Repository.Implementation
 {
@@ -19,93 +10,21 @@ namespace CarsImgApi.Repository.Implementation
     {
 
         private readonly IConfiguration _configuration;
+        private readonly string _connectionString;
 
         public VehicleRepository(IConfiguration configuration)
         {
             _configuration = configuration;
+            _connectionString = configuration.GetConnectionString("OracleDb");
         }
 
-        public string GetName(string token)
-        {
-            DecryptService decryptService = new DecryptService(_configuration);
-            return decryptService.GetName(token);
-        }
-
-        /*
-         @Purporse: This method purporse was to retrieve the chasis depending on what the user type. 
-
-        Example: If i write K4352, this method will bring to me al the chasis that match with the user string. 
-                  this way i can create a litlle filter to get dinamically the chasis the user want. 
-         
-        public async Task<IEnumerable<ChasisResponseDto>> getChasis(string chasis, string user)
+        public async Task<IEnumerable<Vehicle>> GetAllVehiclesData(string user)
         {
 
-            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
-
-            List<ChasisResponseDto> chasisList = new List<ChasisResponseDto>();
-
-            using (OracleConnection con = new OracleConnection(stringConnection))
+            using (OracleConnection con = new OracleConnection(_connectionString))
             {
-                using (OracleCommand cmd = con.CreateCommand())
-                {
-                    await con.OpenAsync();
-                    cmd.CommandText = @"SELECT CHASIS FROM DATOS_VEHICULOS where chasis like '%" + chasis + "%'";
-                    var reader = await cmd.ExecuteReaderAsync();
-                    while (await reader.ReadAsync())
-                    {
-                        var chasisR = new ChasisResponseDto
-                        {
-                            Chasis = reader["CHASIS"].ToString()
-                        };
-                        chasisList.Add(chasisR);
-                    }
-                }
-            }
-            return chasisList;
-        }
-
-        public async Task<IEnumerable<ChasisResponseDto>> getAllChasis(string user)
-        {
-            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
-
-            List<ChasisResponseDto> chasis = new List<ChasisResponseDto>();
-
-            using (OracleConnection con = new OracleConnection(stringConnection))
-            {
-                using (OracleCommand cmd = con.CreateCommand())
-                {
-                    await con.OpenAsync();
-                    cmd.CommandText = @"SELECT CHASIS FROM DATOS_VEHICULOS";
-                    var reader = await cmd.ExecuteReaderAsync();
-                    while (await reader.ReadAsync())
-                    {
-                        var chasisList = new ChasisResponseDto
-                        {
-                            Chasis = reader["chasis"].ToString()
-                        };
-                        chasis.Add(chasisList);
-                    }
-                }
-            }
-            return chasis;
-        } these method wont be used it. That's why are commented.*/ 
-
-        public async Task<IEnumerable<Vehicle>> getAllVehiclesData(string user)
-        {
-
-            try
-            {
-                //var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
-                var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
-
-                List<Vehicle> vehicles = new List<Vehicle>();
-
-                using (OracleConnection con = new OracleConnection(stringConnection))
-                {
-                    using (OracleCommand cmd = con.CreateCommand())
-                    {
-                        await con.OpenAsync();
-                        cmd.CommandText = $@"select 
+                   
+                    const string sql = @"select 
                                         compania, 
                                         sucursal, 
                                         orden_numero, 
@@ -114,82 +33,38 @@ namespace CarsImgApi.Repository.Implementation
                                         marca, 
                                         modelo, 
                                         placa 
-                                        from CONFITEC.V_ORDENES_PARA_RECEPCION
-                                        WHERE RECEPTOR = upper('{user}') ";
-                        var reader = await cmd.ExecuteReaderAsync();
+                                    from CONFITEC.V_ORDENES_PARA_RECEPCION
+                                    WHERE RECEPTOR = upper(:user) ";
 
-                        while (await reader.ReadAsync())
-                        {
-                            var vehicle = new Vehicle
-                            {
-                                Compania = reader["compania"].ToString(),
-                                Sucursal = reader["sucursal"].ToString(),
-                                Orden_Numero = Convert.ToInt32(reader["orden_numero"]),
-                                Fecha_orden = (DateTime)reader["fecha_orden"],
-                                Nombre_cliente = reader["nombre_cliente"].ToString(),
-                                Marca = reader["marca"].ToString(),
-                                Modelo = reader["modelo"].ToString(),
-                                Placa = reader["placa"].ToString(),
-                            };
-
-                            vehicles.Add(vehicle);
-                        }
-                    }
-                }
+                // Dapper abre la conexión, pasa el parámetro, ejecuta y mapea todo automáticamente
+                // basándose en el nombre de las columnas (por eso los AS si hay diferencias de mayúsculas/minúsculas).
+                var vehicles = await con.QueryAsync<Vehicle>(sql, new { user = user });
 
                 return vehicles;
             }
-            catch (Exception ex)
-            {
-                throw null;
-            }
-
+               
         }
 
-        public async Task<Vehicle> getVehicleByPlaca(string placa, string user)
+        public async Task<Vehicle> GetVehicleByPlaca(string placa, string user)
         {
 
-            try
+            /*Obtenemos la conexion a la base de datos*/
+            var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
+                
+            /*Utilizamos el using para abrir y cerrar los recursos y dejar la memoria libre cuando termine de correr.*/
+            using (OracleConnection con = new OracleConnection(stringConnection))
             {
-                //var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(GetName(user)));
-                var stringConnection = getConnectionString(BaseService._poolSqlConnections.get(user));
-                var Vehicle = new Vehicle();
+                    
 
-                using (OracleConnection con = new OracleConnection(stringConnection))
-                {
-                    using (OracleCommand cmd = con.CreateCommand())
-                    {
-                        await con.OpenAsync();
-                        cmd.CommandText = @"select * 
-                                        from CONFITEC.v_ordenes_para_recepcion
-                                        where placa= '" + placa + "'";
-                        var reader = await cmd.ExecuteReaderAsync();
-                        while (await reader.ReadAsync())
-                        {
-                            var vehicleRead = new Vehicle
-                            {
-                                Compania = reader["compania"].ToString(),
-                                Sucursal = reader["sucursal"].ToString(),
-                                Orden_Numero = Convert.ToInt32(reader["orden_numero"]),
-                                Fecha_orden = (DateTime)reader["fecha_orden"],
-                                Nombre_cliente = reader["nombre_cliente"].ToString(),
-                                Marca = reader["marca"].ToString(),
-                                Modelo = reader["modelo"].ToString(),
-                                Placa = reader["placa"].ToString(),
-                            };
-                            Vehicle = vehicleRead;
-                        }
-                    }
-                }
+                const string sql = @"select * 
+                                    from CONFITEC.v_ordenes_para_recepcion
+                                    where placa = :placa ";
 
-                return Vehicle;
-            }
-            catch (Exception ex)
-            {
-                throw null;
+                    
+                /*Utilizamos Dapper para hacer el mapeo de parametros y el retorno de la entidad de manera limpiar y eficiente. (sin usar ADO puro)*/
+                return await con.QuerySingleAsync<Vehicle>(sql, new { placa = placa });
+
             }
         } 
-
-
     }
 }
