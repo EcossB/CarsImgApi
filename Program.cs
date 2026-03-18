@@ -14,14 +14,14 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information() // Solo guarda de "Info" para arriba (ignora los miles de logs de "Debug")
     .WriteTo.Console()
     .WriteTo.File("logs/errores-.txt",
-        rollingInterval: RollingInterval.Day, // Crea un archivo nuevo cada día automáticamente
+        rollingInterval: RollingInterval.Day, // Crea un archivo nuevo cada dï¿½a automï¿½ticamente
         restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error) // En el archivo SOLO guarda errores, no basura
     .CreateLogger();
 
 try
 {
     Log.Information(@"-------------------------------------------------------------
-                      Iniciando la aplicación CarsImgApi...
+                      Iniciando la aplicaciï¿½n CarsImgApi...
                       -------------------------------------------------------------");
 
 
@@ -73,7 +73,7 @@ try
         });
 
     //esto solo se usa para build de produccion, localmente hay que comentarlo
-    builder.Services.AddCors(options =>
+   /* builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowFrontend", policy =>
         {
@@ -83,27 +83,28 @@ try
                  .AllowCredentials();
 
         });
-    });
+    });*/
+   
 
+    var app = builder.Build();
+    
     // Configure the HTTP request pipeline. descomentar esto cuando estemos probando en desarrollo.
-    /*if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
         app.UseCors(options => options.
-                                AllowAnyMethod()
-                                .AllowAnyHeader()
-                                .SetIsOriginAllowed(origin => true)
-                                .AllowCredentials());
+            AllowAnyMethod()
+            .AllowAnyHeader()
+            .SetIsOriginAllowed(origin => true)
+            .AllowCredentials());
     }
 
     app.UseCors(options => options.
-                            AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .SetIsOriginAllowed(origin => true)
-                            .AllowCredentials());*/
-
-    var app = builder.Build();
+        AllowAnyMethod()
+        .AllowAnyHeader()
+        .SetIsOriginAllowed(origin => true)
+        .AllowCredentials());
 
     app.UseExceptionHandler(errorApp =>
     {
@@ -119,16 +120,16 @@ try
                 var excepcion = contextFeature.Error;
                 var ruta = context.Request.Path;
 
-                // 4. AQUÍ USAMOS SERILOG.
-                // Log.Error guardará la fecha, el mensaje, la ruta y el StackTrace completo.
-                Log.Error(excepcion, "Fallo crítico no manejado al intentar acceder a {Ruta}", ruta);
+                // 4. AQUï¿½ USAMOS SERILOG.
+                // Log.Error guardarï¿½ la fecha, el mensaje, la ruta y el StackTrace completo.
+                Log.Error(excepcion, "Fallo crï¿½tico no manejado al intentar acceder a {Ruta}", ruta);
 
                 var ticketId = Guid.NewGuid(); // Generamos un ID de rastreo
 
                 // 5. Devolvemos un mensaje seguro al usuario
                 await context.Response.WriteAsJsonAsync(new
                 {
-                    Mensaje = "Ocurrió un error inesperado. Nuestro equipo técnico ya fue notificado.",
+                    Mensaje = "Ocurriï¿½ un error inesperado. Nuestro equipo tï¿½cnico ya fue notificado.",
                     IdError = ticketId
                 });
             }
@@ -136,7 +137,7 @@ try
         });
     });
 
-    app.UseCors("AllowFrontend"); //descomentar para cuando se haga build pra produccion.
+    //app.UseCors("AllowFrontend"); //descomentar para cuando se haga build pra produccion.
 
     app.UseHttpsRedirection();
 
@@ -150,10 +151,10 @@ try
 
 } catch (Exception ex)
 {
-    Log.Fatal(ex, "La aplicación falló al arrancar de forma catastrófica.");
+    Log.Fatal(ex, "La aplicaciï¿½n fallï¿½ al arrancar de forma catastrï¿½fica.");
 }
 finally
 {
-    // 6. Asegura que los últimos logs se escriban antes de que se apague el programa
+    // 6. Asegura que los ï¿½ltimos logs se escriban antes de que se apague el programa
     Log.CloseAndFlush();
 }
