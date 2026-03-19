@@ -1,5 +1,4 @@
-﻿using CarsImgApi.Models.Domain;
-using CarsImgApi.Models.DTO.ImgVehicleDTOS;
+using CarsImgApi.Models.Domain;
 
 namespace CarsImgApi.Repository.Interface
 {
@@ -9,13 +8,12 @@ namespace CarsImgApi.Repository.Interface
 
         public Task<IEnumerable<ImgVehicles>> GetAllImagesVehicles(string user);
 
-        public Task<ImgVehicles> GetImageVehicle(int num_order);
+        public Task<ImgVehicles?> GetImageVehicle(int num_order);
 
         public Task<List<ImgVehicles>> PaginateImages(string user, int pagina, int limiteRegistro);
 
         public Task<IEnumerable<ImgVehicles>> Get4FirstImages(string user);
 
         public Task<int> NumberPages(string user);
-
     }
 }

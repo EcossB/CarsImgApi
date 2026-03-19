@@ -1,7 +1,7 @@
-﻿namespace CarsImgApi.Models
+namespace CarsImgApi.Models
 {
     public class MessageModel
     {
-        public string message { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
     }
 }
