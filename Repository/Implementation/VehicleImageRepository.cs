@@ -1,13 +1,14 @@
-﻿using System.Data;
-using System.Diagnostics;
-using CarsImgApi.Models.Domain;
+﻿using CarsImgApi.Models.Domain;
 using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 using CarsImgApi.Repository.Interface;
 using CarsImgApi.services;
+using Dapper;
 using Microsoft.AspNetCore.Components.Forms;
 using Oracle.ManagedDataAccess.Client;
+using System.Data;
+using System.Diagnostics;
 using System.Drawing;
-using Dapper;
+using System.Drawing.Printing;
 
 namespace CarsImgApi.Repository.Implementation
 {
@@ -16,7 +17,7 @@ namespace CarsImgApi.Repository.Implementation
 
         private readonly IConfiguration _configuration;
         private readonly ICreateImage _imageService;
-        private readonly string _connectionString;
+        private readonly string? _connectionString;
 
         public VehicleImageRepository(IConfiguration configuration, ICreateImage imageService)
         {
@@ -25,7 +26,7 @@ namespace CarsImgApi.Repository.Implementation
             _connectionString = configuration.GetConnectionString("OracleDb");
         }
 
-        public async Task<ImgVehicles> AddImagesVehicle(ImgVehicles vehicle, string user)
+        public async Task<ImgVehicles?> AddImagesVehicle(ImgVehicles vehicle, string user)
         {
 
             using (OracleConnection con = new OracleConnection(_connectionString))
@@ -122,7 +123,7 @@ namespace CarsImgApi.Repository.Implementation
                                                     FROM SNAPSHOTDB.IMAGENES_VEHICULOS
                                                 WHERE NUM_ORDEN = :pnum_order";
 
-                    var vehicle = await con.QuerySingleAsync<ImgVehicles>(commandText, new { pnum_order = num_order });
+                    var vehicle = await con.QuerySingleOrDefaultAsync<ImgVehicles>(commandText, new { pnum_order = num_order });
                     await _imageService.GetImageAsync(vehicle);
                     return vehicle; 
             }
@@ -131,6 +132,7 @@ namespace CarsImgApi.Repository.Implementation
 
         public async Task<IEnumerable<ImgVehicles>> Get4FirstImages(string user)
         {
+            var imageList = new List<ImgVehicles>();
             using (OracleConnection con = new OracleConnection(_connectionString))
             {
 
@@ -145,36 +147,55 @@ namespace CarsImgApi.Repository.Implementation
                                         IMG_ANEXO2,
                                         IMG_ANEXO3
                                         FROM SNAPSHOTDB.IMAGENES_VEHICULOS
-                                        WHERE ROWNUM <= 4
-                                            and usuario = :p_user
+                                        WHERE USUARIO = :p_user
+                                            and ROWNUM <= 4
                                     ORDER BY NUM_ORDEN ASC";
 
-                var imgVehicle = await con.QuerySingleAsync(commandText, new { p_user = user });
-                imgVehicle = await _imageService.GetImageAsync(imgVehicle);
+                var imgVehicle = await con.QueryAsync(commandText, new {p_user = user});
 
-                return imgVehicle;
+                foreach (var img in imgVehicle)
+                {
+                    imageList.Add(await _imageService.GetImageAsync(img));
+                }
+                    
+                return imageList;
             }                       
         }
 
-        public async Task<List<ImgVehicles>> PaginateImages(string user, int pagina, int limiteRegistro)
+        public async Task<PagedResult<ImgVehicles>> PaginateImages(string user, int pagina, int limiteRegistro)
         {
-            var ImageList = await GetAllImagesVehicles(user);
-            return ImageList.Skip((pagina - 1) * limiteRegistro).Take(limiteRegistro).ToList();
-        }
+            int minRow = (pagina - 1) * limiteRegistro;
+            int maxRow = pagina * limiteRegistro;
 
-        public async Task<int> NumberPages(string user)
-        {
-
-            using (OracleConnection con = new OracleConnection(_connectionString))
+            using(var con = new OracleConnection(_connectionString))
             {
-                    
-                const string commandText = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
-                                        FROM SNAPSHOTDB.IMAGENES_VEHICULOS
-                                    WHERE USUARIO = upper(:p_user)";
+                const string totalRegistros = "SELECT COUNT(1) FROM SNAPSHOTDB.V_ORDENES_RECEPCION WHERE USUARIO = UPPER(:p_user)";
+                int totalRecords = await con.ExecuteScalarAsync<int>(totalRegistros, new { p_user = user });
 
-                return await con.QuerySingleAsync<int>(commandText, new { p_user = user });
-                                          
-            }    
+                const string sqlData = @"
+                                        SELECT * FROM (
+                                            SELECT a.*, ROWNUM rnum FROM (
+                                                SELECT * FROM V_ORDENES_PARA_RECEPCION 
+                                                WHERE RECEPTOR = upper(:p_user)
+                                                ORDER BY FECHA_CREACION DESC 
+                                            ) a
+                                            WHERE ROWNUM <= :MaxRow
+                                        )
+                                        WHERE rnum > :MinRow";
+
+                var data = await con.QueryAsync<ImgVehicles>(sqlData, new { p_user = user, MaxRow = maxRow, MinRow = minRow });
+
+
+                return new PagedResult<ImgVehicles>
+                {
+                    Data = data,
+                    TotalRecords = totalRecords,
+                    PageNumber = pagina,
+                    PageSize = limiteRegistro
+                };
+
+            }
+
         }
 
     }
