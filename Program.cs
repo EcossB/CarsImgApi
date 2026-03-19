@@ -9,7 +9,7 @@ using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
-/*Agregando middleWare para atrapar las excepciones globales y guardarlas con Serilog*/
+/*Agregando middleWare para atrapar las excepciones globales y guardarlas con Serilogs*/
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information() // Solo guarda de "Info" para arriba (ignora los miles de logs de "Debug")
     .WriteTo.Console()
