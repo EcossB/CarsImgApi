@@ -14,7 +14,7 @@
         public string? Img_anexo3 { get; set; } = string.Empty;
         public int Kilometros {get; set; } = 0;
         public string? Placa {get; set; } = string.Empty;
-        public string Usuario {get; set; }
+        public string? Usuario { get; set; } = string.Empty;
 
     }
 }

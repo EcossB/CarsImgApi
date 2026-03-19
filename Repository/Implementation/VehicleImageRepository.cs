@@ -1,181 +1,131 @@
-﻿using System.Data;
-using System.Diagnostics;
+using System.Data;
 using CarsImgApi.Models.Domain;
 using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 using CarsImgApi.Repository.Interface;
-using CarsImgApi.services;
-using Microsoft.AspNetCore.Components.Forms;
 using Oracle.ManagedDataAccess.Client;
-using System.Drawing;
 using Dapper;
 
 namespace CarsImgApi.Repository.Implementation
 {
     public class VehicleImageRepository : IImageVehicle
     {
-
-        private readonly IConfiguration _configuration;
         private readonly ICreateImage _imageService;
         private readonly string _connectionString;
 
         public VehicleImageRepository(IConfiguration configuration, ICreateImage imageService)
         {
-            _configuration = configuration;
             _imageService = imageService;
-            _connectionString = configuration.GetConnectionString("OracleDb");
+            _connectionString = configuration.GetConnectionString("OracleDb")
+                ?? throw new InvalidOperationException("OracleDb connection string is not configured.");
         }
 
         public async Task<ImgVehicles> AddImagesVehicle(ImgVehicles vehicle, string user)
         {
+            var vehicleWithPaths = await _imageService.CreateImageAsync(vehicle);
 
-            using (OracleConnection con = new OracleConnection(_connectionString))
-            {
-                   
-                const string CommandText = @"INSERT INTO snapshotdb.IMAGENES_VEHICULOS 
-                                        (COMPANIA,
-                                            SUCURSAL,
-                                            NUM_ORDEN,
-                                            IMG_LATERAL_DERECHO,
-                                            IMG_LATERAL_IZQUIERDO,
-                                            IMG_FRONTAL, 
-                                            IMG_TRASERO,
-                                            IMG_ANEXO1,
-                                            IMG_ANEXO2,
-                                            IMG_ANEXO3,
-                                            KILOMETROS,
-                                            PLACA,
-                                            USUARIO) 
-                                            VALUES
-                                        (:COMPANIA, 
-                                            :SUCURSAL, 
-                                            :NUM_ORDEN, 
-                                            :Img_lateral_derecho, 
-                                            :Img_lateral_izquierdo, 
-                                            :Img_frontal, 
-                                            :Img_trasero, 
-                                            :Img_anexo1, 
-                                            :Img_anexo2, 
-                                            :Img_anexo3,
-                                            :KILOMETROS,
-                                            :PLACA,
-                                            :USUARIO)";
+            using var con = new OracleConnection(_connectionString);
 
-                var listImage = await _imageService.CreateImageAsync(vehicle);
-                vehicle.Img_lateral_derecho = listImage[0];
-                vehicle.Img_lateral_izquierdo = listImage[1];
-                vehicle.Img_frontal = listImage[2];
-                vehicle.Img_trasero = listImage[3];
-                vehicle.Img_anexo1 = listImage[4];
-                vehicle.Img_anexo2 = listImage[5];
-                vehicle.Img_anexo3 = listImage[6];
-                
+            const string sql = @"INSERT INTO snapshotdb.IMAGENES_VEHICULOS 
+                                    (COMPANIA, SUCURSAL, NUM_ORDEN,
+                                     IMG_LATERAL_DERECHO, IMG_LATERAL_IZQUIERDO,
+                                     IMG_FRONTAL, IMG_TRASERO,
+                                     IMG_ANEXO1, IMG_ANEXO2, IMG_ANEXO3,
+                                     KILOMETROS, PLACA, USUARIO)
+                                 VALUES
+                                    (:Compania, :Sucursal, :Num_orden,
+                                     :Img_lateral_derecho, :Img_lateral_izquierdo,
+                                     :Img_frontal, :Img_trasero,
+                                     :Img_anexo1, :Img_anexo2, :Img_anexo3,
+                                     :Kilometros, :Placa, :Usuario)";
 
-                await con.ExecuteAsync(CommandText, vehicle);
-            }
+            await con.ExecuteAsync(sql, vehicleWithPaths);
 
-            return vehicle;
-
+            return vehicleWithPaths;
         }
 
         public async Task<IEnumerable<ImgVehicles>> GetAllImagesVehicles(string user)
         {
+            using var con = new OracleConnection(_connectionString);
 
-            var imageList = new List<ImgVehicles>();
+            const string sql = @"SELECT COMPANIA, SUCURSAL, NUM_ORDEN,
+                                         IMG_LATERAL_DERECHO, IMG_LATERAL_IZQUIERDO,
+                                         IMG_FRONTAL, IMG_TRASERO,
+                                         IMG_ANEXO1, IMG_ANEXO2, IMG_ANEXO3,
+                                         KILOMETROS, PLACA, USUARIO
+                                    FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                   WHERE USUARIO = upper(:p_user)
+                                   ORDER BY NUM_ORDEN DESC";
 
-            using (OracleConnection con = new OracleConnection(_connectionString))
-            {
+            var rows = await con.QueryAsync<ImgVehicles>(sql, new { p_user = user });
 
-                const string commandText = @"SELECT COMPANIA,
-                                            SUCURSAL,
-                                            NUM_ORDEN,
-                                            IMG_LATERAL_DERECHO,
-                                            IMG_LATERAL_IZQUIERDO,
-                                            IMG_FRONTAL,
-                                            IMG_TRASERO,
-                                            IMG_ANEXO1,
-                                            IMG_ANEXO2,
-                                            IMG_ANEXO3
-                                        FROM SNAPSHOTDB.IMAGENES_VEHICULOS
-                                            WHERE USUARIO = upper(:p_user)
-                                        ORDER BY NUM_ORDEN DESC";
-
-                var vehicleList = await con.QueryAsync<ImgVehicles>(commandText, new { p_user = user });
-    
-                foreach (var vehicle in vehicleList)
-                {
-                    imageList.Add(await _imageService.GetImageAsync(vehicle));
-                }
-
-                return imageList;
-
-            }
-            
+            return await Task.WhenAll(rows.Select(_imageService.GetImageAsync));
         }
 
-        public async Task<ImgVehicles> GetImageVehicle(int num_order)
+        public async Task<ImgVehicles?> GetImageVehicle(int num_order)
         {
+            using var con = new OracleConnection(_connectionString);
 
-                using (OracleConnection con = new OracleConnection(_connectionString))
-                {
+            const string sql = @"SELECT * FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                  WHERE NUM_ORDEN = :p_num_order";
 
-                    const string commandText = @"SELECT *
-                                                    FROM SNAPSHOTDB.IMAGENES_VEHICULOS
-                                                WHERE NUM_ORDEN = :pnum_order";
+            var vehicle = await con.QuerySingleOrDefaultAsync<ImgVehicles>(sql, new { p_num_order = num_order });
+            if (vehicle is null)
+                return null;
 
-                    var vehicle = await con.QuerySingleAsync<ImgVehicles>(commandText, new { pnum_order = num_order });
-                    await _imageService.GetImageAsync(vehicle);
-                    return vehicle; 
-            }
+            return await _imageService.GetImageAsync(vehicle);
         }
-
 
         public async Task<IEnumerable<ImgVehicles>> Get4FirstImages(string user)
         {
-            using (OracleConnection con = new OracleConnection(_connectionString))
-            {
+            using var con = new OracleConnection(_connectionString);
 
-                const string commandText = $@"SELECT COMPANIA,
-                                        SUCURSAL,
-                                        NUM_ORDEN,
-                                        IMG_LATERAL_DERECHO,
-                                        IMG_LATERAL_IZQUIERDO,
-                                        IMG_FRONTAL,
-                                        IMG_TRASERO,
-                                        IMG_ANEXO1,
-                                        IMG_ANEXO2,
-                                        IMG_ANEXO3
-                                        FROM SNAPSHOTDB.IMAGENES_VEHICULOS
-                                        WHERE ROWNUM <= 4
-                                            and usuario = :p_user
-                                    ORDER BY NUM_ORDEN ASC";
+            const string sql = @"SELECT COMPANIA, SUCURSAL, NUM_ORDEN,
+                                         IMG_LATERAL_DERECHO, IMG_LATERAL_IZQUIERDO,
+                                         IMG_FRONTAL, IMG_TRASERO,
+                                         IMG_ANEXO1, IMG_ANEXO2, IMG_ANEXO3,
+                                         KILOMETROS, PLACA, USUARIO
+                                    FROM (
+                                        SELECT * FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                         WHERE USUARIO = :p_user
+                                         ORDER BY NUM_ORDEN DESC
+                                    )
+                                   WHERE ROWNUM <= 4";
 
-                var imgVehicle = await con.QuerySingleAsync(commandText, new { p_user = user });
-                imgVehicle = await _imageService.GetImageAsync(imgVehicle);
+            var rows = await con.QueryAsync<ImgVehicles>(sql, new { p_user = user });
 
-                return imgVehicle;
-            }                       
+            return await Task.WhenAll(rows.Select(_imageService.GetImageAsync));
         }
 
         public async Task<List<ImgVehicles>> PaginateImages(string user, int pagina, int limiteRegistro)
         {
-            var ImageList = await GetAllImagesVehicles(user);
-            return ImageList.Skip((pagina - 1) * limiteRegistro).Take(limiteRegistro).ToList();
+            using var con = new OracleConnection(_connectionString);
+
+            int offset = (pagina - 1) * limiteRegistro;
+
+            const string sql = @"SELECT COMPANIA, SUCURSAL, NUM_ORDEN,
+                                         IMG_LATERAL_DERECHO, IMG_LATERAL_IZQUIERDO,
+                                         IMG_FRONTAL, IMG_TRASERO,
+                                         IMG_ANEXO1, IMG_ANEXO2, IMG_ANEXO3,
+                                         KILOMETROS, PLACA, USUARIO
+                                    FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                   WHERE USUARIO = upper(:p_user)
+                                   ORDER BY NUM_ORDEN DESC
+                                   OFFSET :p_offset ROWS FETCH NEXT :p_limit ROWS ONLY";
+
+            var rows = await con.QueryAsync<ImgVehicles>(sql, new { p_user = user, p_offset = offset, p_limit = limiteRegistro });
+
+            return [.. await Task.WhenAll(rows.Select(_imageService.GetImageAsync))];
         }
 
         public async Task<int> NumberPages(string user)
         {
+            using var con = new OracleConnection(_connectionString);
 
-            using (OracleConnection con = new OracleConnection(_connectionString))
-            {
-                    
-                const string commandText = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
-                                        FROM SNAPSHOTDB.IMAGENES_VEHICULOS
-                                    WHERE USUARIO = upper(:p_user)";
+            const string sql = @"SELECT CEIL(COUNT(*) / 4) PAGINAS
+                                    FROM SNAPSHOTDB.IMAGENES_VEHICULOS
+                                   WHERE USUARIO = upper(:p_user)";
 
-                return await con.QuerySingleAsync<int>(commandText, new { p_user = user });
-                                          
-            }    
+            return await con.QuerySingleAsync<int>(sql, new { p_user = user });
         }
-
     }
 }

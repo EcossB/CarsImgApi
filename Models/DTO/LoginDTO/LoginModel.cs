@@ -1,10 +1,9 @@
-﻿namespace CarsImgApi.Models.DTO.LoginDTO
+namespace CarsImgApi.Models.DTO.LoginDTO
 {
     public class LoginModel
     {
-        public string userName { get; set; } = string.Empty;
-        public string password { get; set; } = string.Empty;
-
-        public string token { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
     }
 }

@@ -2,8 +2,6 @@
 using CarsImgApi.Models.DTO;
 using CarsImgApi.Models.DTO.LoginDTO;
 using CarsImgApi.Repository.Interface;
-using CarsImgApi.services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarsImgApi.Controllers
@@ -23,31 +21,25 @@ namespace CarsImgApi.Controllers
         public async Task<IActionResult> Login(UserSqlConnection user)
         {
             var token = await _authService.Login(user);
-            
+
             if (token is not null)
             {
-                var loginResponse = new loginResponseDto
+                return Ok(new LoginResponseDto
                 {
-                    UsuarioOracle = token.userName,
-                    Token = token.token
-                };
-
-                return Ok(loginResponse);
+                    UsuarioOracle = token.UserName,
+                    Token = token.Token
+                });
             }
-            
-            ModelState.AddModelError("Error","Nombre de Usuario O Contraseña Invalidos");
+
+            ModelState.AddModelError("Error", "Nombre de Usuario O Contraseña Invalidos");
             return ValidationProblem(ModelState);
         }
 
         [HttpPost("logout")]
-        public ActionResult<IActionResult> LogOut(LogOutModel userName)
+        public ActionResult<MessageModel> LogOut(LogOutModel userName)
         {
             var message = _authService.LogOut(userName);
             return Ok(message);
         }
-
-
-
-
     }
 }
