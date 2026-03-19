@@ -112,43 +112,24 @@ namespace CarsImgApi.Controllers
         }
 
         [HttpGet]
-        [Route("pagination/user{user}/page{page}/limit{limit}")]
-        public async Task<ActionResult<ImgVehiclePaginationDTO>> ImgPagination(string user, int page, int limit)
+        [Route("pagination/user={user}/page={page}/limit={limit}")]
+        public async Task<ActionResult<PagedResult<ImgVehicles>>> ImgPagination(string user, int page, int limit)
         {
-            var vehicleList = await _imageRepository.PaginateImages(user, page, limit);
-            var totalPages = await _imageRepository.NumberPages(user);
-
-            var imageVehicleList = new List<ImgVehicleResponseDTO>();
-
-            foreach (var vehicle in vehicleList) 
+            if (page <= 0 || limit <= 0)
             {
-                imageVehicleList.Add(new ImgVehicleResponseDTO
-                {
-                    Compania = vehicle.Compania,
-                    Sucursal = vehicle.Sucursal,
-                    Num_orden = vehicle.Num_orden,
-                    Img_lateral_derecho = vehicle.Img_lateral_derecho,
-                    Img_lateral_izquierdo = vehicle.Img_lateral_izquierdo,
-                    Img_frontal = vehicle.Img_frontal,
-                    Img_trasero = vehicle.Img_trasero,
-                    Img_anexo1 = vehicle.Img_anexo1,
-                    Img_anexo2 = vehicle.Img_anexo2,
-                    Img_anexo3 = vehicle.Img_anexo3
-                });
+                return BadRequest(new { Message = "La Pagina Y El Size De La Pagina Deben De Ser Mayor A 0" });
             }
 
-            var response = new ImgVehiclePaginationDTO
-            {
-                imgCars = imageVehicleList,
-                pages = totalPages,
-            };
+            if (page > 50) page = 50;
 
-            return Ok(response);
+            var vehicleList = await _imageRepository.PaginateImages(user, page, limit);
+
+            return Ok(vehicleList);
 
         }
 
         [HttpGet]
-        [Route("get4first/user{user}")]
+        [Route("get4first/user={user}")]
         public async Task<IActionResult> GetFirst4Image(string user)
         {
             var vehicleList = await _imageRepository.Get4FirstImages(user);
