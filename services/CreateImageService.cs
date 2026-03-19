@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
-using CarsImgApi.Models;
+﻿using CarsImgApi.Models;
 using CarsImgApi.Models.Domain;
 using CarsImgApi.Repository.Interface;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace CarsImgApi.services
 {
@@ -18,10 +19,22 @@ namespace CarsImgApi.services
             _diskRoute = _configuration.GetValue<string>("DiskRoute") ?? throw new ArgumentNullException("DiskRoute configuration is missing.");
         }
 
+
+        private string SanitizeFileName(string? input)
+        {
+            if (string.IsNullOrEmpty(input)) return "DEFAULT";
+            string pattern = @"[^a-zA-Z0-9\-\.]";
+            return Regex.Replace(input, pattern, "_");
+        }
+
         public async Task<List<string>> CreateImageAsync(ImgVehicles vehicleImages)
         {
 
-            var imagesToProcces = new Dictionary<string, string>
+            string companiaSana = SanitizeFileName(vehicleImages.Compania);
+            string sucursalSana = SanitizeFileName(vehicleImages.Sucursal);
+            string numOrdenSana = SanitizeFileName(vehicleImages.Num_orden.ToString());
+
+            var imagesToProcces = new Dictionary<string, string?>
             {
                 {"IMAGEN_DERECHA", vehicleImages.Img_lateral_derecho},
                 {"IMAGEN_IZQUIERDA", vehicleImages.Img_lateral_izquierdo},
@@ -31,6 +44,7 @@ namespace CarsImgApi.services
                 {"IMAGEN_ANEXO2", vehicleImages.Img_anexo2},
                 {"IMAGEN_ANEXO3", vehicleImages.Img_anexo3}
             };
+
 
             /*this list will contain all the path of the images. these paths are the path that we are going to insert in the database*/
             var savedPath = new List<string>();
@@ -49,8 +63,15 @@ namespace CarsImgApi.services
                     Directory.CreateDirectory(rutaImagenes);
                 }
 
-                string imageName = $"{vehicleImages.Compania}_{vehicleImages.Sucursal}_{vehicleImages.Num_orden}_{img.Key}.jpg";
+                string imageName = $"{companiaSana}_{sucursalSana}_{numOrdenSana}_{img.Key}.jpg";
                 string fullPath = Path.Combine(rutaImagenes, imageName);
+
+                var rutaNormalizada = Path.GetFullPath(fullPath);
+                if (!rutaNormalizada.StartsWith(Path.GetFullPath(_diskRoute), StringComparison.OrdinalIgnoreCase))
+                {
+                    // Esto es un intento de ataque. Lo bloqueamos y podemos loguearlo como FATAL.
+                    throw new UnauthorizedAccessException("Intento de Path Traversal detectado.");
+                }
 
 
                 //Se esta utilzando el disco E para que guarde las imagenes.
