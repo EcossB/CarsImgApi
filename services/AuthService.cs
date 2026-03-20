@@ -5,7 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 using Oracle.ManagedDataAccess.Client;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace CarsImgApi.services
@@ -31,8 +30,8 @@ namespace CarsImgApi.services
                 var builder = new OracleConnectionStringBuilder(baseConnectionString)
                 {
                     // El builder se encarga de escapar cualquier carácter peligroso automáticamente
-                    UserID = user.userName,
-                    Password = user.password
+                    UserID = user.UserName,
+                    Password = user.Password
                 };
 
                 // 3. Obtienes el string final sanitizado
@@ -46,7 +45,7 @@ namespace CarsImgApi.services
 
                 LoginModel model = new LoginModel
                 {
-                    userName = user.userName,
+                    userName = user.UserName,
                     token = GenerateToken(user)
                 };
                 
@@ -81,7 +80,7 @@ namespace CarsImgApi.services
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.userName)
+                new Claim(ClaimTypes.Name, user.UserName)
             };
 
             /*var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
