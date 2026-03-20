@@ -101,13 +101,15 @@ namespace CarsImgApi.Repository.Implementation
                                         ORDER BY NUM_ORDEN DESC";
 
                 var vehicleList = await con.QueryAsync<ImgVehicles>(commandText, new { p_user = user });
+                
+                if(vehicleList == null) return null;
     
-                foreach (var vehicle in vehicleList)
-                {
-                    imageList.Add(await _imageService.GetImageAsync(vehicle));
-                }
+                // foreach (var vehicle in vehicleList)
+                // {
+                    // imageList.Add(await _imageService.GetImageAsync(vehicle));
+                // }
 
-                return imageList;
+                return vehicleList;
 
             }
             
@@ -124,8 +126,12 @@ namespace CarsImgApi.Repository.Implementation
                                                 WHERE NUM_ORDEN = :pnum_order";
 
                     var vehicle = await con.QuerySingleOrDefaultAsync<ImgVehicles>(commandText, new { pnum_order = num_order });
-                    await _imageService.GetImageAsync(vehicle);
-                    return vehicle; 
+
+                    if (vehicle == null) return null;
+                    
+                    //var vehicleImage = await _imageService.GetImageAsync(vehicle);
+                    
+                    return vehicle;
             }
         }
 
@@ -151,14 +157,16 @@ namespace CarsImgApi.Repository.Implementation
                                             and ROWNUM <= 4
                                     ORDER BY NUM_ORDEN ASC";
 
-                var imgVehicle = await con.QueryAsync(commandText, new {p_user = user});
+                var imgVehicle = await con.QueryAsync<ImgVehicles>(commandText, new {p_user = user});
+                
+                if (imgVehicle == null) return null;
 
-                foreach (var img in imgVehicle)
-                {
-                    imageList.Add(await _imageService.GetImageAsync(img));
-                }
+                // foreach (var img in imgVehicle)
+                // {
+                    // imageList.Add(await _imageService.GetImageAsync(img));
+                // }
                     
-                return imageList;
+                return imgVehicle;
             }                       
         }
 
@@ -166,17 +174,18 @@ namespace CarsImgApi.Repository.Implementation
         {
             int minRow = (pagina - 1) * limiteRegistro;
             int maxRow = pagina * limiteRegistro;
+            var dataIMage = new List<ImgVehicles>();
 
             using(var con = new OracleConnection(_connectionString))
             {
-                const string totalRegistros = "SELECT COUNT(1) FROM SNAPSHOTDB.V_ORDENES_RECEPCION WHERE USUARIO = UPPER(:p_user)";
+                const string totalRegistros = "SELECT COUNT(1) FROM SNAPSHOTDB.IMAGENES_VEHICULOS WHERE USUARIO = UPPER(:p_user)";
                 int totalRecords = await con.ExecuteScalarAsync<int>(totalRegistros, new { p_user = user });
 
                 const string sqlData = @"
                                         SELECT * FROM (
                                             SELECT a.*, ROWNUM rnum FROM (
-                                                SELECT * FROM V_ORDENES_PARA_RECEPCION 
-                                                WHERE RECEPTOR = upper(:p_user)
+                                                SELECT * FROM SNAPSHOTDB.IMAGENES_VEHICULOS 
+                                                WHERE USUARIO = upper(:p_user)
                                                 ORDER BY FECHA_CREACION DESC 
                                             ) a
                                             WHERE ROWNUM <= :MaxRow
@@ -184,7 +193,14 @@ namespace CarsImgApi.Repository.Implementation
                                         WHERE rnum > :MinRow";
 
                 var data = await con.QueryAsync<ImgVehicles>(sqlData, new { p_user = user, MaxRow = maxRow, MinRow = minRow });
+                
+                if (data == null) return null;
 
+                // foreach (var img in data)
+                // {
+                    // dataIMage.Add(await _imageService.GetImageAsync(img));
+                // }
+                
 
                 return new PagedResult<ImgVehicles>
                 {
