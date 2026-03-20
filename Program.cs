@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using Microsoft.Extensions.FileProviders;
 
 /*Agregando middleWare para atrapar las excepciones globales y guardarlas con Serilogs*/
 Log.Logger = new LoggerConfiguration()
@@ -29,6 +30,8 @@ try
 
     // 3. Le decimos a .NET que reemplace su sistema de logs por defecto por Serilog
     builder.Host.UseSerilog();
+    builder.Services.AddHttpContextAccessor();
+
 
     // Add services to the container.
 
@@ -146,6 +149,12 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+    
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "imagenes")),
+        RequestPath = "/imagenes"
+    });
 
     app.Run();
 
