@@ -11,11 +11,13 @@ namespace CarsImgApi.services
         /*Route disk where i save the images.*/
         private readonly string _diskRoute;
         private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _env;
-        public CreateImageService(IConfiguration configuration, IWebHostEnvironment env)
+        public CreateImageService(IConfiguration configuration, IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
             _env = env;
+            _httpContextAccessor = httpContextAccessor;
             _diskRoute = _configuration.GetValue<string>("DiskRoute") ?? throw new ArgumentNullException("DiskRoute configuration is missing.");
         }
 
@@ -56,7 +58,8 @@ namespace CarsImgApi.services
                 var base64Data = img.Value.Split(',')[1]; // Split the string to get the base64 part
                 var bytesImage = Convert.FromBase64String(base64Data);
                 
-                var rutaImagenes = Path.Combine(_env.WebRootPath ?? _env.ContentRootPath, _diskRoute);
+                
+                var rutaImagenes = Path.Combine(_env.ContentRootPath, _diskRoute);
                 
                 if (!Directory.Exists(rutaImagenes))
                 {
@@ -76,8 +79,13 @@ namespace CarsImgApi.services
 
                 //Se esta utilzando el disco E para que guarde las imagenes.
                 await File.WriteAllBytesAsync(fullPath,bytesImage);
+                
+                //ahora creamos la url que sera consumida en el frontend mediante archivos estaticos https://carimgapi.com/imagenes/imagefile.jpg.
+                
+                var requesteHttp = _httpContextAccessor.HttpContext.Request;
+                var urlPath = $"{requesteHttp.Scheme}://{requesteHttp.Host}{requesteHttp.PathBase}/{_diskRoute}/{imageName}";
 
-                savedPath.Add(fullPath); //adding the path to the list.
+                savedPath.Add(urlPath); //adding the path to the list.
 
             }
             
