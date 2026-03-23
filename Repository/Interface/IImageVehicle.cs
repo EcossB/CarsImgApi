@@ -14,6 +14,7 @@ namespace CarsImgApi.Repository.Interface
         public Task<PagedResult<ImgVehicles>> PaginateImages(string user, int pagina, int limiteRegistro);
 
         public Task<IEnumerable<ImgVehicles>> Get4FirstImages(string user);
+        public Task<ImgVehicles> AddSingleImageVehicle(IFormCollection file, ImgSingleVehicleRequest vehicle);
 
     }
 }
