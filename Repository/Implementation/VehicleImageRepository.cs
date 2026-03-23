@@ -77,6 +77,62 @@ namespace CarsImgApi.Repository.Implementation
             return vehicle;
 
         }
+        
+        public async Task<ImgVehicles> AddSingleImageVehicle(IFormCollection file, ImgSingleVehicleRequest vehicle)
+        {
+            using (OracleConnection con = new OracleConnection(_connectionString))
+            {
+
+                const string CommandText = @"INSERT INTO snapshotdb.IMAGENES_VEHICULOS 
+                                        (COMPANIA,
+                                            SUCURSAL,
+                                            NUM_ORDEN,
+                                            IMG_LATERAL_DERECHO,
+                                            IMG_LATERAL_IZQUIERDO,
+                                            IMG_FRONTAL, 
+                                            IMG_TRASERO,
+                                            IMG_ANEXO1,
+                                            IMG_ANEXO2,
+                                            IMG_ANEXO3,
+                                            KILOMETROS,
+                                            PLACA,
+                                            USUARIO) 
+                                            VALUES
+                                        (:COMPANIA, 
+                                            :SUCURSAL, 
+                                            :NUM_ORDEN, 
+                                            :Img_lateral_derecho, 
+                                            :Img_lateral_izquierdo, 
+                                            :Img_frontal, 
+                                            :Img_trasero, 
+                                            :Img_anexo1, 
+                                            :Img_anexo2, 
+                                            :Img_anexo3,
+                                            :KILOMETROS,
+                                            :PLACA,
+                                            :USUARIO)";
+
+                var vehicleSaved = new ImgVehicles
+                {
+                    Compania = vehicle.Compania,
+                    Sucursal = vehicle.Sucursal,
+                    Num_orden = vehicle.Num_orden,
+                    Img_lateral_derecho = await _imageService.CreateSingleImageAsync(file.Files.GetFile("img_lateral_derecho"), vehicle, "img_lateral_derecho"),
+                    Img_lateral_izquierdo = await _imageService.CreateSingleImageAsync(file.Files.GetFile("img_lateral_izquierdo"), vehicle, "img_lateral_izquierdo"),
+                    Img_frontal = await _imageService.CreateSingleImageAsync(file.Files.GetFile("img_frontal"), vehicle, "img_frontal"),
+                    Img_trasero = await _imageService.CreateSingleImageAsync(file.Files.GetFile("img_trasero"), vehicle, "img_trasero"),
+                    Img_anexo1 = await _imageService.CreateSingleImageAsync(file.Files.GetFile("img_anexo1"), vehicle, "img_anexo1"),
+                    Img_anexo2 = await _imageService.CreateSingleImageAsync(file.Files.GetFile("img_anexo2"), vehicle, "img_anexo2"),
+                    Img_anexo3 = await _imageService.CreateSingleImageAsync(file.Files.GetFile("img_anexo3"), vehicle, "img_anexo3"),
+                    Kilometros = vehicle.Kilometros,
+                    Placa = vehicle.Placa,
+                    Usuario = vehicle.Usuario
+                };
+
+                await con.ExecuteAsync(CommandText, vehicleSaved);
+                return vehicleSaved;
+            }
+        }
 
         public async Task<IEnumerable<ImgVehicles>> GetAllImagesVehicles(string user)
         {
@@ -169,6 +225,8 @@ namespace CarsImgApi.Repository.Implementation
                 return imgVehicle;
             }                       
         }
+
+
 
         public async Task<PagedResult<ImgVehicles>> PaginateImages(string user, int pagina, int limiteRegistro)
         {
