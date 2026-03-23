@@ -83,6 +83,42 @@ namespace CarsImgApi.Controllers
             return Ok(response);
         }
 
+
+        [HttpPost("UploadImage")]
+        [Consumes("multipart/form-data")] // Forzamos este tipo de petición
+        public async Task<IActionResult> UploadImage([FromForm] IFormCollection file)
+        {
+            
+            string? compania = file["compania"];
+            string? sucursal = file["sucursal"];
+            int num_orden = Int32.Parse(file["num_orden"]);
+            string? usuario = file["usuario"];
+            string? placa = file["placa"];
+            int kilometro = Int32.Parse(file["kilometro"]);
+
+            var vehicle = new ImgSingleVehicleRequest()
+            {
+                Compania = compania,
+                Sucursal = sucursal,
+                Num_orden = num_orden,
+                Kilometros = kilometro,
+                Usuario = usuario,
+                Placa = placa
+            };
+            
+            
+            var newVehicle = await _imageRepository.AddSingleImageVehicle(file, vehicle);
+            
+            if (newVehicle is not null) 
+            {
+                return Ok(new { Message = "New Vehicle images Save!" });
+            }
+
+            return BadRequest();
+            
+        }
+        
+
         [HttpGet]
         [Route("getByNumOrder/{num_order}")]
         public async Task<IActionResult> GetImgVehicleByNumOrder([FromRoute]int num_order)
