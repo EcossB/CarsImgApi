@@ -3,6 +3,7 @@ using CarsImgApi.Models.Domain;
 using CarsImgApi.Repository.Interface;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using CarsImgApi.Models.DTO.ImgVehicleDTOS;
 
 namespace CarsImgApi.services
 {
@@ -90,6 +91,47 @@ namespace CarsImgApi.services
             }
             
             return savedPath; //returning the list. 
+        }
+
+        public async Task<string> CreateSingleImageAsync(IFormFile file, ImgSingleVehicleRequest img, string nombre)
+        {
+            string companiaSana = SanitizeFileName(img.Compania);
+            string sucursalSana = SanitizeFileName(img.Sucursal);
+            string ladoSano = SanitizeFileName(nombre);
+            string numOrdenSana = SanitizeFileName(img.Num_orden.ToString());
+                
+                
+            var rutaImagenes = Path.Combine(_env.ContentRootPath, _diskRoute);
+                
+            if (!Directory.Exists(rutaImagenes))
+            {
+                Directory.CreateDirectory(rutaImagenes);
+            }
+
+            string imageName = $"{companiaSana}_{sucursalSana}_{numOrdenSana}_{ladoSano}.jpg";
+            string fullPath = Path.Combine(rutaImagenes, imageName);
+
+            var rutaNormalizada = Path.GetFullPath(fullPath);
+            if (!rutaNormalizada.StartsWith(Path.GetFullPath(_diskRoute), StringComparison.OrdinalIgnoreCase))
+            {
+                // Esto es un intento de ataque. Lo bloqueamos y podemos loguearlo como FATAL.
+                throw new UnauthorizedAccessException("Intento de Path Traversal detectado.");
+            }
+
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                // CopyToAsync lee la imagen en pedacitos pequeños (chunks de ~80KB) 
+                // y los escribe en el disco inmediatamente. 
+                // ¡Tu RAM nunca pasará de esos 80KB por imagen!
+                await file.CopyToAsync(stream);
+            }
+                
+            //ahora creamos la url que sera consumida en el frontend mediante archivos estaticos https://carimgapi.com/imagenes/imagefile.jpg.
+                
+            var requesteHttp = _httpContextAccessor.HttpContext.Request;
+            var urlPath = $"{requesteHttp.Scheme}://{requesteHttp.Host}{requesteHttp.PathBase}/{_diskRoute}/{imageName}";
+            
+            return urlPath;
         }
 
         public async Task<ImgVehicles> GetImageAsync(ImgVehicles vehicleImages)
